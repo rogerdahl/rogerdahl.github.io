@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Anti-aliasing technologies &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="Misc" href="../../index_misc.html" />
+    <link rel="next" title="Replacing active coolers" href="../fan/index.html" />
+    <link rel="prev" title="itoa and strlen performance" href="../string_perf/index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../fan/index.html" title="Replacing active coolers"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../string_perf/index.html" title="itoa and strlen performance"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_misc.html" accesskey="U">Misc</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Anti-aliasing technologies</a><ul>
+<li><a class="reference internal" href="#definitions">Definitions</a></li>
+<li><a class="reference internal" href="#anti-aliasing-based-on-multi-sampling">Anti-aliasing based on multi-sampling</a></li>
+<li><a class="reference internal" href="#anti-aliasing-based-on-post-processing">Anti-aliasing based on post-processing</a></li>
+<li><a class="reference internal" href="#anti-aliasing-modes">Anti-aliasing modes</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">NVIDIA</li>
+<li class="dl_l2">ATI</li>
+<li class="dl_l2">Graphics</li>
+<li class="dl_l2">GeForce</li>
+<li class="dl_l2">Fermi</li>
+<li class="dl_l2">Radeon</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../string_perf/index.html"
+                        title="previous chapter"><code class="docutils literal"><span class="pre">itoa</span></code> and <code class="docutils literal"><span class="pre">strlen</span></code> performance</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../fan/index.html"
+                        title="next chapter">Replacing active coolers</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="anti-aliasing-technologies">
+<h1>Anti-aliasing technologies<a class="headerlink" href="#anti-aliasing-technologies" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="definitions">
+<h2>Definitions<a class="headerlink" href="#definitions" title="Permalink to this headline">¶</a></h2>
+<p></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td></td>
+<td id="a"><p class="first"><strong>Aliasing</strong></p>
+<p class="last">Aliasing is any artifact that appears when lowering the
+resolution of an image. These artifacts typically appear as jagged
+and flickering lines and edges.</p>
+</td>
+</tr>
+<tr class="row-even"><td></td>
+<td id="ta"><p class="first"><strong>Temporal aliasing</strong></p>
+<p class="last">Temporal aliasing refers specifically to the flickering or
+shimmering effects that <a class="reference external" href="#a">aliasing</a> causes when objects
+move in a scene.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><span class="target" id="aa">AA</span></td>
+<td><p class="first"><strong>Anti-aliasing</strong></p>
+<p>Anti-aliasing is any technology that is designed to minimize
+<a class="reference external" href="#a">aliasing</a> and <a class="reference external" href="#ta">temporal aliasing</a> artifcats.</p>
+<p class="last">Anti-aliasing is relevant in a 3D graphics rendering pipeline
+because part of the pipeline handles graphics as geometry of
+essentially infinite resolution. In a late stage in the pipeline,
+known as ROP, Raster Operations, the color of each pixel on the
+screen is determined based on the geometry. It is in or after this
+stage that any anti-aliasing is performed.</p>
+</td>
+</tr>
+<tr class="row-even"><td></td>
+<td id="s"><p class="first"><strong>Sampling</strong></p>
+<p><em>Sampling</em> is a term borrowed from signal processing. Sampling is
+the process of selecting a single value from a continuously varying
+series of values. The result of a sampling is a single value called
+a sample. In some instances, the term is used somewhat loosely.</p>
+<p class="last">In 3D graphics, a sample describes a point-sized (infinitely small)
+area of geometry. When rendering 3D graphics, the challenge is to
+use the point sized samples to color pixels, which have a physical
+area. The more samples are available from the various resources
+that make up a 3D scene, the more accurately the pixels can be
+colored.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p></p>
+</div>
+<div class="section" id="anti-aliasing-based-on-multi-sampling">
+<span id="aa-ms"></span><h2>Anti-aliasing based on multi-sampling<a class="headerlink" href="#anti-aliasing-based-on-multi-sampling" title="Permalink to this headline">¶</a></h2>
+<p>Overview of AA methods that work by calculating extra samples and then using
+those to more accurately select the color of each pixel.</p>
+<p></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><span class="target" id="fsaa">FSAA</span></td>
+<td><p class="first"><strong>Full Scene Anti-aliasing</strong></p>
+<p class="last">Describes any AA technology that works on the whole screen. This is
+as opposed techniques that work on parts of the screen, such as
+<a class="reference internal" href="#traa">TrAA</a>.</p>
+</td>
+</tr>
+<tr class="row-even"><td><span class="target" id="ssaa">SSAA</span></td>
+<td><p class="first"><strong>Super-sampling Anti-aliasing</strong></p>
+<p>This is the type of AA that creates the best image quality. It is
+&#8220;pure&#8221; AA with no compromises. All the other AA technologies exist
+because SSAA is very slow.</p>
+<p>SSAA works by calculating multiple <a class="reference external" href="#s">samples</a> for each actual
+pixel on the screen and then averaging those samples to determine
+the color for each pixel. The ratio of samples to pixels is often
+described by a number put before the acronym. For instance, 8xSSAA
+describes that each pixel on screen will be the avarage of 8
+samples.</p>
+<p>When there is no multi-sampling, the color of each pixel is
+determined based on a single sample from the center of the pixel.
+When multiple samples are calculated per pixel, those samples are
+distributed across the pixel in patterns designed to maximize the AA
+effect. In particular, this means that the samples are not evenly
+distributed and do not line up horizontally or vertically.</p>
+<p class="last">SSAA is slow because the pixel rendering stage of the rendering
+pipeline must do the same amount of work as if the screen resolution
+was many times the resolution of what it is. For instance, with a
+resolution of 1920x1080 and 8xSSAA, the hardware must calculate the
+same amount of pixels as if the resolution was 7680x2160.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><span class="target" id="ogssaa">OGSSAA</span></td>
+<td><p class="first"><strong>Ordered Grid Super-sampling Anti-aliasing</strong> (OGSS)</p>
+<p class="last">Same as <a class="reference internal" href="#ssaa">SSAA</a>.</p>
+</td>
+</tr>
+<tr class="row-even"><td><span class="target" id="rgssaa">RGSSAA</span></td>
+<td><p class="first"><strong>Regular Grid Super-sampling Anti-aliasing</strong> (RGSS)</p>
+<p>Same as <a class="reference internal" href="#ssaa">SSAA</a>.</p>
+<p class="last">Note: RGSSAA has two separate meanings. See the entry below.</p>
+</td>
+</tr>
+<tr class="row-odd"><td>RGSSAA</td>
+<td><p class="first"><strong>Rotated Grid Super-sampling Anti-aliasing</strong></p>
+<p>Similar to <a class="reference internal" href="#ssaa">SSAA</a>. The difference is that instead of the sample
+grid being along horizontal and vertical axis, the grid is rotated
+to a fixed angle. This causes better anti-aliasing of edges that are
+almost horizontal or vertical.</p>
+<p class="last">Note: RGSSAA has two separate meanings. See the entry above.</p>
+</td>
+</tr>
+<tr class="row-even"><td><span class="target" id="sgssaa">SGSSAA</span></td>
+<td><p class="first"><strong>Sparse Grid Super-sampling Anti-aliasing</strong></p>
+<p>Similar to <a class="reference internal" href="#ssaa">SSAA</a>. This type of <a class="reference internal" href="#aa">AA</a> is the first in a series of
+<a class="reference internal" href="#aa">AA</a> types that represent a compromise designed to trade image
+quality for performance.</p>
+<p class="last">The sampling pattern of plain <a class="reference internal" href="#ssaa">SSAA</a> is called <em>Regular Grid</em> or
+<em>Ordered Grid</em>. It can be pictured as a grid that has higher
+resolution than the pixel grid. Where <a class="reference internal" href="#ssaa">SSAA</a> samples in each square
+in that grid, SGSSAA samples in only some of the squares.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><span class="target" id="jgssaa">JGSSAA</span></td>
+<td><p class="first"><strong>Jittered Grid Super-sampling Anti-aliasing</strong></p>
+<p class="last">Similar to <a class="reference internal" href="#ssaa">SSAA</a>. The difference is that sample locations are
+altered so that they no longer exactly follow the grid that plain
+<a class="reference internal" href="#ssaa">SSAA</a> uses. This helps hide regularly occuring artifacts.</p>
+</td>
+</tr>
+<tr class="row-even"><td></td>
+<td><p class="first"><strong>Stochastic Super-sampling Anti-aliasing</strong></p>
+<p class="last">Similar to <a class="reference internal" href="#jgssaa">JGSSAA</a>. The difference is that the sample positions
+are fully random instead of being just randomly offset from the grid
+as in <a class="reference internal" href="#jgssaa">JGSSAA</a>. The white noise that this introduces helps hide
+rendering artifacts.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><span class="target" id="msaa">MSAA</span></td>
+<td><p class="first"><strong>Multi-sampling Anti-aliasing</strong></p>
+<p>In a pixel pipeline, the final color of each pixel on the screen is
+determined by taking into account samples from Shader, Texture,
+Color, Depth and Stencil resources. Of these, Shader samples are by
+far the most expensive (slow to calculate) because the source of
+these samples are calculations done in software by an arbitrarily
+complex program that runs on the graphics card, called a Shader.
+Texture samples are also somewhat expensive. So, while <a class="reference internal" href="#ssaa">SSAA</a>
+retrieves the same amount of samples from each resource, MSAA
+lessens the load on Shader and Texture resources by only retrieving
+a single Shader, Texture and Color sample for each pixel regardless
+of how many Depth and Stencil samples are retrieved for each pixel.</p>
+<p class="last">The result is that, compared to <a class="reference internal" href="#ssaa">SSAA</a>, MSAA runs much faster but
+it smoothes only the edges of polygons. It does not help for the
+internal areas of polygons as those are based on samples from
+Shaders and Textures.</p>
+</td>
+</tr>
+<tr class="row-even"><td><span class="target" id="csaa">CSAA</span></td>
+<td><p class="first"><strong>Coverage Sampling Anti-aliasing</strong></p>
+<p>Extends <a class="reference internal" href="#msaa">MSAA</a>. It adds a type of samples called Coverage samples.
+The grid of Coverage samples is of higher resolution than the grid
+of samples used by <a class="reference internal" href="#msaa">MSAA</a> and provides a high resolution yes/no
+indication as to if a part of a given pixel is covered by a polygon.</p>
+<p>By using this high resolution grid of samples together with the
+other samples already handled by <a class="reference internal" href="#msaa">MSAA</a>, CSAA is able to more
+accurately determine how to color each individual pixel.</p>
+<p class="last">Coverage sampling is less expensive than it may first seem because
+the yes/no indication can be encoded in a single bit. This means
+that Coverage samples use much less memory and memory bandwith than
+<a class="reference internal" href="#msaa">MSAA</a> samples.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><span class="target" id="traa">TrAA</span></td>
+<td><p class="first"><strong>Transparency Anti-aliasing</strong></p>
+<p>Describes <a class="reference internal" href="#aa">AA</a> types such as <a class="reference internal" href="#tmaa">TMAA</a> and <a class="reference internal" href="#tsaa">TSAA</a> that are designed
+to handle flat pictures with see-through areas (Billboards, Decals
+or Point Sprites in 3D graphics lingo) differently from real 3D
+models.</p>
+<p>In a 3D scene, there are two main ways of displaying items that have
+see-through areas, such as a tree. If the tree can be seen from all
+angles, a 3D model is used. But if the tree can be seen only from
+one angle or from far away, one may be able to get away with
+displaying just a flat picture of a tree in that location, thereby
+rendering the scene faster. TrAA applies to such flat pictures.</p>
+<p class="last">TrAA exists because flat pictures are not handled well by <a class="reference internal" href="#fsaa">FSAA</a>
+methods other than <a class="reference internal" href="#ssaa">SSAA</a>. This is because flat pictures do not
+have any geometry associated with them and <a class="reference internal" href="#aa">AA</a> methods other than
+<a class="reference internal" href="#ssaa">SSAA</a> derive most of their samples from geometry.</p>
+</td>
+</tr>
+<tr class="row-even"><td><span class="target" id="tmaa">TMAA</span></td>
+<td><p class="first"><strong>Transparency Multi-sampling Anti-aliasing</strong></p>
+<p class="last">A type of <a class="reference internal" href="#traa">TrAA</a>. It works by applying <a class="reference internal" href="#msaa">MSAA</a> to flat pictures
+while leaving the real 3D models in the scene to be handled by other
+<a class="reference internal" href="#aa">AA</a> methods or by <a class="reference internal" href="#msaa">MSAA</a> with a different number of samples.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><span class="target" id="tsaa">TSAA</span></td>
+<td><p class="first"><strong>Transparency Super-sampling Anti-aliasing</strong></p>
+<p class="last">Like <a class="reference internal" href="#tmaa">TMAA</a>, but uses <a class="reference internal" href="#ssaa">SSAA</a> instead of <a class="reference internal" href="#msaa">MSAA</a> for the flat
+pictures.</p>
+</td>
+</tr>
+<tr class="row-even"><td><span class="target" id="adaa">AdAA</span></td>
+<td><p class="first"><strong>Adaptive Anti-aliasing</strong></p>
+<p class="last">A combination of <a class="reference internal" href="#tmaa">TMAA</a> and <a class="reference internal" href="#tsaa">TSAA</a>.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><span class="target" id="hraa">HRAA</span></td>
+<td><p class="first"><strong>High-Resolution Anti-aliasing</strong></p>
+<p class="last">This method was introduced in GeForce3 in 2001 and was perhaps
+NVIDIA&#8217;s first stab at improving the performance of basic <a class="reference internal" href="#ssaa">SSAA</a>.
+In this method, the two sampling locations of 2x<a class="reference internal" href="#ssaa">SSAA</a> are
+adjusted so that one sample is in the upper left corner of the pixel
+and the other is in the center. Thus, when looking at a grid of
+pixels, each pixel ends up with a sample in the center and one in
+each corner, for a total of 5 samples. HRAA then uses all 5 samples
+to determine the color of the pixel. In other words, each corner
+sample is reused by all of the 4 pixels that share that corner. The
+technique gives quality similar to 4x<a class="reference internal" href="#ssaa">SSAA</a> with performance like
+2x<a class="reference internal" href="#ssaa">SSAA</a>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p></p>
+</div>
+<div class="section" id="anti-aliasing-based-on-post-processing">
+<span id="aa-pp"></span><h2>Anti-aliasing based on post-processing<a class="headerlink" href="#anti-aliasing-based-on-post-processing" title="Permalink to this headline">¶</a></h2>
+<p>Overview of AA methods that work by post-processing. As opposed to the
+<a class="reference external" href="#anti-aliasing-based-on-multi-sampling">multi-sampling AA methods</a>, these
+methods work by adding a final step in which an algorithm examines the rendered
+image and adjusts pixels to reduce aliasing artifacts. In a pure post-processing
+based method, no extra samples are calculated. All post-processing based methods
+can be combined with multi-sampling methods to leverage the strengths of both.</p>
+<p>Post-processing based AA has become possible due to the increase in computing
+capabilities in modern GPUs.</p>
+<p></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><span class="target" id="mlaa">MLAA</span></td>
+<td><p class="first"><strong>Morphological Anti-aliasing</strong></p>
+<p>The first AA method based on post processing. Invented by Intel and
+adopted by ATI for use on Radeon graphics cards.</p>
+<p>Algorithm:</p>
+<ol class="last arabic simple">
+<li>Find discontinuities between pixels in a given image.</li>
+<li>Identify predefined patterns.</li>
+<li>Blend colors in the neighborhood of these patterns.</li>
+</ol>
+</td>
+</tr>
+<tr class="row-even"><td><span class="target" id="fxaa">FXAA</span></td>
+<td><p class="first"><strong>Fast Approximate Anti-aliasing</strong></p>
+<p>NVIDIA&#8217;s answer to <a class="reference internal" href="#mlaa">MLAA</a>. The general consensus is that FXAA does
+not look as good as <a class="reference internal" href="#mlaa">MLAA</a>, but that it has less impact on
+performance (3-5%).</p>
+<p class="last">FXAA does not directly address <a class="reference external" href="#ta">temporal aliasing</a>. It may also not
+anti-alias all edges in a scene.</p>
+</td>
+</tr>
+<tr class="row-odd"><td><span class="target" id="txaa">TXAA</span></td>
+<td><p class="first"><strong>Temporal Approximate Anti-aliasing</strong></p>
+<p>TXAA is designed to minimize both regular <a class="reference external" href="#a">aliasing</a> and
+<a class="reference external" href="#ta">temporal aliasing</a>. In motion, TXAA approaches the quality
+of AA algorithms used for CG graphics in the movie industry.</p>
+<p>Algorithm:</p>
+<p>NVIDIA has not disclosed the details of the TXAA algorithm. They
+describe it as a combination of hardware anti-aliasing (traditional
+multi-sampling methods), a custom anti-aliasing resolve, and a
+temporal filter.</p>
+<p>As of summer 2013, TXAA is only supported on Kepler-based GeForce
+cards, such as the GTX 600 Series.</p>
+<ul class="last simple">
+<li>2xTXAA looks about the same as 8x<a class="reference internal" href="#msaa">MSAA</a> and performs about the
+same as 2x<a class="reference internal" href="#msaa">MSAA</a>.</li>
+<li>4xTXAA looks better than 8x<a class="reference internal" href="#msaa">MSAA</a> and performs about the same
+as 4x<a class="reference internal" href="#msaa">MSAA</a>.</li>
+</ul>
+</td>
+</tr>
+<tr class="row-even"><td><span class="target" id="smaa">SMAA</span></td>
+<td><p class="first"><strong>Enhanced Subpixel Morphological Anti-aliasing</strong></p>
+<p>Combines <a class="reference internal" href="#mlaa">MLAA</a> with <a class="reference internal" href="#msaa">MSAA</a> or <a class="reference internal" href="#ssaa">SSAA</a> and adds a number of
+features that improves image quality, such as:</p>
+<ul class="simple">
+<li>More reliable edge detection.</li>
+<li>Better preservation of sharp geometric features and diagonal lines.</li>
+<li>Accelerated and more accurate pattern classification.</li>
+</ul>
+<p class="last">SMAA is an open source project and free software is available that
+will add SMAA to any game.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p></p>
+</div>
+<div class="section" id="anti-aliasing-modes">
+<h2>Anti-aliasing modes<a class="headerlink" href="#anti-aliasing-modes" title="Permalink to this headline">¶</a></h2>
+<p>In <a class="reference external" href="#anti-aliasing-based-on-multi-sampling">multi-sampling AA methods</a>,
+multiple samples are calculated for each pixel on the screen. This table lists
+the resources from which samples are made and the number of samples, per pixel,
+that are calculated for each resource.</p>
+<ul class="simple">
+<li><strong>S</strong>: Supersampling. Modes ending with <em>S</em> include super-sampling. They also
+use Rotated Grid <a class="reference internal" href="#msaa">MSAA</a>.</li>
+<li><strong>Q</strong>: Quality. Modes ending with <em>Q</em> double the number of MSAA samples as
+compared to their regular counterparts.</li>
+<li><strong>G</strong>: Gaussian. Applies to TrAA modes.</li>
+</ul>
+<p></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="7%" />
+<col width="31%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Mode</th>
+<th class="head" colspan="6">Samples</th>
+<th class="head">Alternate name</th>
+</tr>
+<tr class="row-even"><th class="head"></th>
+<th class="head">Shader</th>
+<th class="head">Texture</th>
+<th class="head">Color</th>
+<th class="head">Depth</th>
+<th class="head">Stencil</th>
+<th class="head">Coverage</th>
+<th class="head">&nbsp;</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-odd"><td><em>No AA</em></td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>2xSSAA</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>0</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>4xSSAA</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>0</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>8xSSAA</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>0</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>2xMSAA</td>
+<td>1</td>
+<td>1</td>
+<td>2</td>
+<td>2</td>
+<td>2</td>
+<td>0</td>
+<td>2x</td>
+</tr>
+<tr class="row-even"><td>4xMSAA</td>
+<td>1</td>
+<td>1</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>0</td>
+<td>4x</td>
+</tr>
+<tr class="row-odd"><td>4xMSAA + 2xSSAA</td>
+<td>2</td>
+<td>2</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>0</td>
+<td>4xS</td>
+</tr>
+<tr class="row-even"><td>8xMSAA</td>
+<td>1</td>
+<td>1</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>0</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>16xMSAA</td>
+<td>1</td>
+<td>1</td>
+<td>16</td>
+<td>16</td>
+<td>16</td>
+<td>0</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>4xCSAA</td>
+<td>1</td>
+<td>1</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>8xCSAA</td>
+<td>1</td>
+<td>1</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>8</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>16xCSAA</td>
+<td>1</td>
+<td>1</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>16</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>32xCSAA</td>
+<td>1</td>
+<td>1</td>
+<td></td>
+<td></td>
+<td></td>
+<td>32</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>4xMSAA + 8xCSAA</td>
+<td>1</td>
+<td>1</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>8</td>
+<td>8x</td>
+</tr>
+<tr class="row-odd"><td>8xMSAA + 2xSSAA</td>
+<td>2</td>
+<td>2</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>0</td>
+<td>8xS</td>
+</tr>
+<tr class="row-even"><td>8xMSAA + 8xCSAA</td>
+<td>1</td>
+<td>1</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>8xQ</td>
+</tr>
+<tr class="row-odd"><td>4xMSAA + 16xCSAA</td>
+<td>1</td>
+<td>1</td>
+<td>4</td>
+<td>4</td>
+<td>4</td>
+<td>16</td>
+<td>16x</td>
+</tr>
+<tr class="row-even"><td>16xMSAA + 4xSSAA</td>
+<td>4</td>
+<td>4</td>
+<td>16</td>
+<td>16</td>
+<td>16</td>
+<td>0</td>
+<td>16xS</td>
+</tr>
+<tr class="row-odd"><td>8xMSAA + 16xCSAA</td>
+<td>1</td>
+<td>1</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>16</td>
+<td>16xQ</td>
+</tr>
+<tr class="row-even"><td>8xMSAA + 32xCSAA</td>
+<td>1</td>
+<td>1</td>
+<td>8</td>
+<td>8</td>
+<td>8</td>
+<td>32</td>
+<td>32x</td>
+</tr>
+<tr class="row-odd"><td>32xMSAA + 4xSSAA</td>
+<td>4</td>
+<td>4</td>
+<td>32</td>
+<td>32</td>
+<td>32</td>
+<td>0</td>
+<td>32xS</td>
+</tr>
+<tr class="row-even"><td>4xMSAA + 4xTrAA</td>
+<td>?</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>4xMSAA + 2xTrAA</td>
+<td>?</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>OGSSAA + RGMSAA</td>
+<td>?</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>4xG</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>2xQ</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>6xS</td>
+</tr>
+</tbody>
+</table>
+<p></p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Many of the terms are coined by NVIDIA and describes AA modes implemented in
+their hardware. Some terms are coined by ATI and some are generic.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The sample counts for the <a class="reference internal" href="#csaa">CSAA</a> modes are inflated due to NVIDIA counting
+Multi-samples twice, once as Multi-samples and once as Coverage samples.</p>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The sample counts in the more esoteric AA combinations have not been verified.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../fan/index.html" title="Replacing active coolers"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../string_perf/index.html" title="itoa and strlen performance"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_misc.html" >Misc</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CUDA Collatz &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="CUDA" href="../../index_cuda.html" />
+    <link rel="next" title="CUDA Overcomplete Wavelet (OW) Filter" href="../overcomplete_wavelet/index.html" />
+    <link rel="prev" title="CUDA Benoit" href="../benoit/index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../overcomplete_wavelet/index.html" title="CUDA Overcomplete Wavelet (OW) Filter"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../benoit/index.html" title="CUDA Benoit"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cuda.html" accesskey="U">CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CUDA Collatz</a><ul>
+<li><a class="reference internal" href="#glossary">Glossary</a></li>
+<li><a class="reference internal" href="#overview-of-implemented-optimizations">Overview of implemented optimizations</a><ul>
+<li><a class="reference internal" href="#high-level-optimizations">High level optimizations</a><ul>
+<li><a class="reference internal" href="#skipping-n">Skipping <code class="docutils literal"><span class="pre">N</span></code></a></li>
+<li><a class="reference internal" href="#delay-calculation-optimizations"><code class="docutils literal"><span class="pre">Delay</span></code> calculation optimizations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#low-level-optimizations">Low Level optimizations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#sieve-generator">Sieve generator</a></li>
+<li><a class="reference internal" href="#todo">Todo</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+      <hr><ul><li class="dl_l1">Download</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l1_os">Windows 64<br><a href="/static/cuda_collatz_exe.7z">cuda_collatz_exe.7z</a></li>
+<li class="dl_l1_os">Source<br><a href="/static/cuda_collatz_src.7z">cuda_collatz_src.7z</a></li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">C++</li>
+<li class="dl_l2">Boost</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../benoit/index.html"
+                        title="previous chapter">CUDA Benoit</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../overcomplete_wavelet/index.html"
+                        title="next chapter">CUDA Overcomplete Wavelet (OW) Filter</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cuda-collatz">
+<h1>CUDA Collatz<a class="headerlink" href="#cuda-collatz" title="Permalink to this headline">¶</a></h1>
+<p>See <a class="reference external" href="http://en.wikipedia.org/wiki/Collatz_conjecture">Wikipedia - Collatz Conjecture</a> and <a class="reference external" href="http://www.ericr.nl/wondrous/index.html">On the 3x + 1 problem</a> for more information about this
+intriguing mathematical problem.</p>
+<p>I think this might be the world&#8217;s fastest single chip Collatz <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay
+Record</span></a> calculator. With starting numbers in the 64 bit range, this app checks
+around 8 billion numbers per second for <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>s on a GTX570
+graphics card.</p>
+<div class="section" id="glossary">
+<h2>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h2>
+<dl class="glossary docutils">
+<dt id="term-n">N</dt>
+<dd>A positive number for which the <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a> is to be calculated. In
+theory, it can be infinitely large, but this implementation limits starting
+<a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> to 64 bits and <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> that may be reached during the trajectory
+to 128 bits.</dd>
+<dt id="term-delay">Delay</dt>
+<dd>The number of iterations of the Collatz rules on a given <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> until the
+<a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> reaches the value 1.</dd>
+<dt id="term-trajectory">Trajectory</dt>
+<dd>The path a specific <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> follows from its first value until it reaches
+the value 1.</dd>
+<dt id="term-delay-class">Delay Class</dt>
+<dd>All numbers <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> that have a specific <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a>.</dd>
+<dt id="term-class-record">Class Record</dt>
+<dd><p class="first">The lowest <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> in a given <a class="reference internal" href="#term-delay-class"><span class="xref std std-term">Delay Class</span></a>.</p>
+<p class="last">The first <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> that we find that has a previously unencountered
+<a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a> is a Class Record. If the <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a> is also in the highest
+<a class="reference internal" href="#term-delay-class"><span class="xref std std-term">Delay Class</span></a>, it is also a <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>.</p>
+</dd>
+<dt id="term-delay-record">Delay Record</dt>
+<dd>The lowest <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> that has a <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a> higher than the <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a>
+of the previous <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>.</dd>
+</dl>
+</div>
+<div class="section" id="overview-of-implemented-optimizations">
+<h2>Overview of implemented optimizations<a class="headerlink" href="#overview-of-implemented-optimizations" title="Permalink to this headline">¶</a></h2>
+<p>The performance of this app is achieved by a combination of high level and low
+level optimizations. What follows is brief overview of each optimization.</p>
+<div class="section" id="high-level-optimizations">
+<h3>High level optimizations<a class="headerlink" href="#high-level-optimizations" title="Permalink to this headline">¶</a></h3>
+<p>These optimizations are described on the <a class="reference external" href="http://en.wikipedia.org/wiki/Collatz_conjecture">Wikipedia - Collatz Conjecture</a> page.</p>
+<div class="section" id="skipping-n">
+<h4>Skipping <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a><a class="headerlink" href="#skipping-n" title="Permalink to this headline">¶</a></h4>
+<p>Many <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> can be ruled out as <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>s without calculating
+their <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a>s.</p>
+<ul>
+<li><p class="first">All even <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> are skipped because any even <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>
+can be derived directly from the previous odd numbered <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>.
+(Skips 50% of all <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a>.)</p>
+</li>
+<li><p class="first">All <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> on the form of 3k+2 (N is congruent 2 modulo 3) are
+skipped because these numbers are not potential <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>s.
+(Skips 33% of all remaining <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a>.)</p>
+</li>
+<li><p class="first">A table, called a sieve, is used to skip checking of many <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a>. The sieve
+checks whether paths come together. If two paths join then the upper one can
+never yield a <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a> (or Class Record) and can be skipped.
+(Skips approximately 80% of all remaining <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a>.)</p>
+<p>Example: Any <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> of the form 8k+4 will reach 6k+4 after 3 steps, and so
+will any <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> of the form 8k+5. Therefore no <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> of the form 8k+5
+can be a Class Record (5 itself being the only exception). So any <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> of
+the form 8k+5 does not need to be checked, and all positions of the form 8k+5
+in the sieve contain a zero.</p>
+</li>
+</ul>
+<p>After these optimization have been performed, Less than 7% of all <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a>
+remain to actually be calculated. So, while the app checks around 8 billion
+<a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a>s, it calculates the <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a> of around 560 million <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> s.</p>
+</div>
+<div class="section" id="delay-calculation-optimizations">
+<h4><a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a> calculation optimizations<a class="headerlink" href="#delay-calculation-optimizations" title="Permalink to this headline">¶</a></h4>
+<p>The <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a> s for the <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> that were not skipped must be calculated.
+The following optimizations are done when calculating <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a>s.</p>
+<ul class="simple">
+<li>Lookup tables are used to perform multiple steps of the Collatz calculation
+per iteration of the calculation loop.</li>
+<li>A table, called a &#8220;tail&#8221;, is used to prevent having to calculate the
+<a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a>s of small Ns. Once <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> drops below a certain value, the
+final delay is calculated by looking the remaining <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a> up in this
+table and adding it to the current <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a>.</li>
+<li>In addition, an early break technique has been tested. In this technique,
+<a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> is compared with known, earlier <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>s. Calculation
+is ended early when it is determined that <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> cannot possibly become a
+<a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>. Unfortunately, the speed increase from ending
+calculations early was outweighed by the overhead of continually checking
+<a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> against a table of <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>s, resulting in a net
+decrease of calculation speed. So, the early break optimization has been left
+in the code, but has been disabled.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="low-level-optimizations">
+<h3>Low Level optimizations<a class="headerlink" href="#low-level-optimizations" title="Permalink to this headline">¶</a></h3>
+<p>These are specific to my CUDA implementation for the GPU.</p>
+<ul class="simple">
+<li>The sieve technique that is described on Wikipedia yields a table that
+contains a power-of-two number of entries. For instance, a 20 bit sieve
+contains 2^20 = 1,048,576 entries. The table is applicable to all Ns, to
+infinity. Each entry is a true/false value that describes if the corresponding
+<a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> modulus X can be skipped. In a straightforward GPU implementation,
+one would create 1,048,576 threads, have each check its true/false value in
+the table, and abort if the value is false. This would abort around 80% of the
+values, and calculations would proceed on 20%. On the GPU, threads are run in
+warps. A warp has to keep running as long as at least 1 thread is active. In
+general, each warp would have a few threads active after sieving, so there
+would be almost no speed advantage on the GPU. The most fun I had with this
+project was with finding out how to optimize this on the GPU. The solution
+turned out to be simple. All I had to do was to transform the table of
+true/false values to a table of offsets to all the true values. In this way,
+only the same number of threads as there were true values had to be started
+and no threads had to be aborted. Each thread determines which <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> it
+should calculate by using its index to look up the corresponding offset in the
+sieve offsets table and adding it to the base <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a>.</li>
+<li>Instead of individually performing the three steps described above that filter
+out <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> I rolled those filters into a combined table. Because one of the
+filters remove all numbers on the form 3k+2 (one number out of three), this
+was accomplished by creating three variations of the table, each filtering a
+different set of every three numbers and, for each block of <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> select
+the one that filters out the correct numbers for that <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a> base.</li>
+<li>The step algorithm requires two tables called c and d. It also requires that 3
+to-the-power of the lookup index be calculated for each lookup. Because the
+indexes into each of the tables and the index used in the 3 to-the-power-of
+calculation is the same for a given round in the loop, I created a table for
+the exp3 values and interleaved the three tables so that a single lookup could
+be used for finding both the c and d values and the 3exp value. I found that a
+step size of 19 is the largest step size in which none of the values in the
+tables overflow 32 bit values. The size of the step tables doubles for each
+additional step. 19 steps takes 2 ^ 19 * 4 * 4 = 8,388,608 bytes.</li>
+<li>The <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a> calculation loop was simplified by making sure that the step
+table is wider than the sieve bits.</li>
+<li>In C, there is no efficient way of doing math operations with higher bit width
+than what is natively supported by the machine (because C does not support an
+efficient way of capturing the carry flag and including it in new
+calculations.) The target GPU, GF110, is a 32 bit machine and this calculator
+does 128 bit calculations while calculating the <a class="reference internal" href="#term-delay"><span class="xref std std-term">Delay</span></a>, so it was
+written in PTX (A VM assembly language for NVIDIA GPUs). This helped speed up
+other operations as well.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="sieve-generator">
+<h2>Sieve generator<a class="headerlink" href="#sieve-generator" title="Permalink to this headline">¶</a></h2>
+<p>As described above, the sieve is a precomputed table that specifies <a class="reference internal" href="#term-n"><span class="xref std std-term">N</span></a>
+for which no <a class="reference internal" href="#term-delay-record"><span class="xref std std-term">Delay Record</span></a>s are possible and thus, can be skipped.</p>
+<p>A 19 bit wide sieve turned out to be the optimal size in my GPU implementation.
+Initially, I thought that the optimal size for the sieve would be the widest
+sieve that would fit in GPU memory, so I went about creating an app that could
+create an arbitrarily wide sieve.</p>
+<p>Generating a small sieve is simple. To generate a sieve, say 10 bits wide, 1024k
++ i is calculated, where i loops from 0 to 1023. 10 steps of x/2 or (3x+1)/2 are
+done. After that a number on the form 3^p + r is obtained. If some of those
+numbers end up with the same p and r, all of them can be skipped, except the
+lowest one.</p>
+<p>However, this method does not work for generating a large sieve. The reason is
+that the algorithm is slowed down by a <a class="reference external" href="http://en.wikipedia.org/wiki/Schlemiel_the_Painter%27s_algorithm">Schlemiel the Painter&#8217;s algorithm</a>. For each
+new entry in the table, the algorithm has to revisit all the previously
+generated entries. As the number of entries increases, the algorithm keeps
+slowing down, until it virtually grinds to a halt.</p>
+<p>By analyzing the algorithm, I found that it could be implemented in a way that
+does not require revisiting all the previously generated entries for each new
+entry. The new algorithm makes it feasible to create large sieves. It works by
+creating entries that can be sorted in such a way that only a single pass over
+all the records is necessary.</p>
+<p>A sieve that would use 2GB of memory covers 2 (because we remove even numbered
+bits in the end) * 2GB * 8 (bits per byte) = 32gbit = 2^35 = 34 359 738 368
+bits. To generate this sieve, it is necessary to have a sortable table with the
+same number of entries. Each entry is 16 bytes (optimized using bitfields). 16
+bytes * 34 359 738 368 entry = 512GB of temporary storage.</p>
+<p>Unless one has a supercomputer with TBs of RAM, it is necessary to use disks for
+storage. I found a library called STXXL that implements STL for large datasets
+and includes algorithms that are efficient when using disk based storage. <a class="reference external" href="http://stxxl.sourceforge.net/">STXXL</a> enabled me to easily create an app that
+manipulates the data in much the same way as I would with regular STL. The
+stxxl::sort is not in-place. It requires the same amount of disk space as the
+size of the data being sorted, to store the sorted runs during sorting. So
+another 512GB is required during the step that sorts the entries.</p>
+<p>The same number of index records is also required, each is 64 bits + 8 bits = 9
+bytes. This is less than the extra memory used by sorting the Collatz records,
+so the peak disk usage is 1TB.</p>
+<p>Adding 20% for overhead, I determined that around 1.2TB of disk space was
+required to generate a 2^35 sieve. At the time when I did this project, disks
+weren&#8217;t that large, so I set up several of my largest disks in a JBOD
+configuration to hold the temporary data. The single file on there, that was
+over 1TB at one point, is still the biggest file I&#8217;ve seen. It took around two
+weeks to run the app, during which time the disks were working continuously.</p>
+</div>
+<div class="section" id="todo">
+<h2>Todo<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>There is one unused 32 bit word used for padding in the interleaved step
+table. It might be worth it to extend the exp3 to this word, so that more
+steps can be done in one iteration.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../overcomplete_wavelet/index.html" title="CUDA Overcomplete Wavelet (OW) Filter"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../benoit/index.html" title="CUDA Benoit"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cuda.html" >CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+Analog TV recording, Zoom
+=========================
+
+.. figure:: comparison_pvr250_2.jpg
+
+Analog TV recording, Zoom.

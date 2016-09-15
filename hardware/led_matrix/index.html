@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>µC with 16x16 LED Matrix Display &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="Hardware" href="../../index_hardware.html" />
+    <link rel="next" title="Misc" href="../../index_misc.html" />
+    <link rel="prev" title="Hardware" href="../../index_hardware.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../index_misc.html" title="Misc"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../../index_hardware.html" title="Hardware"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_hardware.html" accesskey="U">Hardware</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">µC with 16x16 LED Matrix Display</a><ul>
+<li><a class="reference internal" href="#the-device">The device</a></li>
+<li><a class="reference internal" href="#theory-of-operation">Theory of operation</a></li>
+<li><a class="reference internal" href="#building">Building</a><ul>
+<li><a class="reference internal" href="#wiring-up-the-design">Wiring up the design</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#selecting-the-components">Selecting the components</a><ul>
+<li><a class="reference internal" href="#c">µC</a></li>
+<li><a class="reference internal" href="#high-side-driver">High side driver</a><ul>
+<li><a class="reference internal" href="#other-options-considered-for-high-side">Other options considered for high side</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#low-side-driver">Low side driver</a><ul>
+<li><a class="reference internal" href="#other-options-considered-for-low-side">Other options considered for low side</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#overview-of-the-firmware">Overview of the firmware</a><ul>
+<li><a class="reference internal" href="#odd-issue-with-the-mco-clock">Odd issue with the MCO clock</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#other-details-about-the-design">Other details about the design</a></li>
+<li><a class="reference internal" href="#thoughts-on-safety-circuitry">Thoughts on safety circuitry</a></li>
+<li><a class="reference internal" href="#ideas">Ideas</a></li>
+<li><a class="reference internal" href="#misc-notes">Misc notes</a><ul>
+<li><a class="reference internal" href="#physically-connecting-components-on-a-breadboard">Physically connecting components on a breadboard</a></li>
+<li><a class="reference internal" href="#the-difference-between-working-with-a-solder-and-solderless-breadboard">The difference between working with a solder and solderless breadboard</a></li>
+<li><a class="reference internal" href="#things-that-i-learned-today">Things that I learned today</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#alternative-design">Alternative design</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../../index_hardware.html"
+                        title="previous chapter">Hardware</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../../index_misc.html"
+                        title="next chapter">Misc</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="c-with-16x16-led-matrix-display">
+<h1>µC with 16x16 LED Matrix Display<a class="headerlink" href="#c-with-16x16-led-matrix-display" title="Permalink to this headline">¶</a></h1>
+<p>This is a project I did to familiarize myself with current, sophisticated
+microcontrollers available for only a few dollars. The project implements a
+small device with a 16x16 LED matrix display powered by a µC. The device can be
+used for running realtime embedded applications that process and display
+information.</p>
+<p>I start out by describing how to build the device. I then go on to include
+various background information such as how I arrived at the set of components
+that was used and various practical notes about embedded development and the
+physical aspects of putting together a circuit on breadboard.</p>
+<div class="section" id="the-device">
+<h2>The device<a class="headerlink" href="#the-device" title="Permalink to this headline">¶</a></h2>
+<p>This video shows the device running a zoom into the Mandelbrot set. This is in
+keeping with a long standing tradition established among my friends and myself
+where rendering the Mandelbrot is implemented as the initial &#8220;Hello World&#8221;
+application on a new platform. As the ARM Cortex-M3 core that is used in the
+STM32L does not have floating point, I used a highly optimized fixed point
+algorithm, kindly provided by Bjørn Bæverfjord, <a class="reference external" href="http://www.sciencezero.org">www.sciencezero.org</a>.</p>
+</div>
+<div class="section" id="theory-of-operation">
+<h2>Theory of operation<a class="headerlink" href="#theory-of-operation" title="Permalink to this headline">¶</a></h2>
+<p>A single row of 16 LEDs is active at any given time. The µC continously changes
+the active row by enabling a new output on the high side drivers and disabling
+the previous one. Each time a new row is activated, the low side driver is
+updated with new data that designates how long each of the LEDs in that row
+should be on, from 0 to 100% with a resolution of 1024 steps. Persistence of
+vision creates the illusion that all LEDs on the display are active at the same
+time.</p>
+</div>
+<div class="section" id="building">
+<h2>Building<a class="headerlink" href="#building" title="Permalink to this headline">¶</a></h2>
+<p><strong>Bill of Materials</strong></p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="6%" />
+<col width="42%" />
+<col width="52%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Qty</th>
+<th class="head">Component</th>
+<th class="head">USD (mouser.com, 2/21/2012)</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>1</td>
+<td>STM32L-DISCOVERY</td>
+<td>$11.67</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>TLC5941NT</td>
+<td>$3.70</td>
+</tr>
+<tr class="row-even"><td>2</td>
+<td>TLC59213IN</td>
+<td>$2.60 (each)</td>
+</tr>
+<tr class="row-odd"><td>1</td>
+<td>CFR25J1K0(fix)</td>
+<td>$0.01</td>
+</tr>
+<tr class="row-even"><td>1</td>
+<td>CFR25J1K0(fix)</td>
+<td>$0.01</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><strong>$20.59</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Among the advantages to this selection are low component count and fairly low
+price. See &lt;selecting components&gt; for things I considered and learned when
+searching for components.</p>
+<p>The LED display itself is not included because I already had that. I soldered
+the display together a long, <em>long</em> time ago.</p>
+<div class="section" id="wiring-up-the-design">
+<h3>Wiring up the design<a class="headerlink" href="#wiring-up-the-design" title="Permalink to this headline">¶</a></h3>
+<p>There&#8217;s not much point in providing full schematics for this design as it is
+so simple. Instead, refer to the pictures and the following table.</p>
+<p>The primary factor when selecting IO pins was their locations. I wanted as many
+connections as possible to use the traces on the breadboard, without having to
+add wires. Other factors were the Discovery board usage of the pins, the
+STM32 defaults for the pins and their 5V tolerance.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="10%" />
+<col width="11%" />
+<col width="10%" />
+<col width="26%" />
+<col width="43%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">STM32</th>
+<th class="head">DEFAULT</th>
+<th class="head">5V</th>
+<th class="head">DISCOVERY</th>
+<th class="head">LED DRIVER</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>EXT_3V</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>TLC5941_VCC</td>
+</tr>
+<tr class="row-odd"><td>GND</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>VDD</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PC13</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>IDD MEASURING</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PC14</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>OSC32_IN</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PC15</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>OSC32_OUT</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PH0</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>OSC_IN</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PH1</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>OSC_OUT</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>GND</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>NRST</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>RESET BUTTON</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PC0</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC5941_XERR</td>
+</tr>
+<tr class="row-odd"><td>PC1</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC5941_SOUT</td>
+</tr>
+<tr class="row-even"><td>PC2</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC5941_BLANK</td>
+</tr>
+<tr class="row-odd"><td>PC3</td>
+<td>IO</td>
+<td><strong>NO</strong></td>
+<td>LCD SEG</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PA0</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>USER BUTTON / IDD MEAS</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PA1</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC5941_XLAT</td>
+</tr>
+<tr class="row-even"><td>PA2</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC5941_SCLK</td>
+</tr>
+<tr class="row-odd"><td>PA3</td>
+<td>IO</td>
+<td><strong>NO</strong></td>
+<td>LCD SEG</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PA4</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>IDD MEASURING</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PA5</td>
+<td>IO</td>
+<td><strong>NO</strong></td>
+<td>FREE</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PB2</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>BOOT1</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PB10</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC5941_SIN</td>
+</tr>
+<tr class="row-even"><td>PB11</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC5941_MODE</td>
+</tr>
+<tr class="row-odd"><td>PB12</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PB13</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PB14</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PB15</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>GND</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>EXT5V</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>GND</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PB9</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD COM</td>
+<td>TLC59213_A_CLR / TLC59213_B_CLR</td>
+</tr>
+<tr class="row-even"><td>PB8</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_A_CLK / TLC59213_B_CLK</td>
+</tr>
+<tr class="row-odd"><td>GND</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>BOOT0</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PB7</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>GREEN LED</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PB6</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>BLUE LED</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PB5</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_A_D0</td>
+</tr>
+<tr class="row-even"><td>PB4</td>
+<td>JTAG</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_A_D1</td>
+</tr>
+<tr class="row-odd"><td>PB3</td>
+<td>JTAG</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_A_D2</td>
+</tr>
+<tr class="row-even"><td>PD2</td>
+<td>IO</td>
+<td>YES</td>
+<td>FREE</td>
+<td>TLC59213_A_D3</td>
+</tr>
+<tr class="row-odd"><td>PC12</td>
+<td>IO</td>
+<td>YES</td>
+<td>FREE</td>
+<td>TLC59213_A_D4</td>
+</tr>
+<tr class="row-even"><td>PC11</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_A_D5</td>
+</tr>
+<tr class="row-odd"><td>PC10</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_A_D6</td>
+</tr>
+<tr class="row-even"><td>PA15</td>
+<td>JTAG</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_A_D7</td>
+</tr>
+<tr class="row-odd"><td>PA14</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>SWD IO</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>PA13</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>SWD IO</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td>PA12</td>
+<td>IO</td>
+<td>YES</td>
+<td>FREE</td>
+<td>TLC59213_B_D0</td>
+</tr>
+<tr class="row-even"><td>PA11</td>
+<td>IO</td>
+<td>YES</td>
+<td>FREE</td>
+<td>TLC59213_B_D1</td>
+</tr>
+<tr class="row-odd"><td>PA10</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD COM</td>
+<td>TLC59213_B_D2</td>
+</tr>
+<tr class="row-even"><td>PA9</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD COM</td>
+<td>TLC59213_B_D3</td>
+</tr>
+<tr class="row-odd"><td>PA8</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD COM</td>
+<td>TLC5941_GSCLK</td>
+</tr>
+<tr class="row-even"><td>PC9</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_B_D5</td>
+</tr>
+<tr class="row-odd"><td>PC8</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_B_D6</td>
+</tr>
+<tr class="row-even"><td>PC7</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_B_D7</td>
+</tr>
+<tr class="row-odd"><td>PC6</td>
+<td>IO</td>
+<td>YES</td>
+<td>LCD SEG</td>
+<td>TLC59213_B_D4</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="selecting-the-components">
+<h2>Selecting the components<a class="headerlink" href="#selecting-the-components" title="Permalink to this headline">¶</a></h2>
+<p>Common to the selection of all the components was that I was limited to DIP
+components (0.1&#8221;, through hole). I don&#8217;t have the equipment to deal with SMD or
+BGA. (I have since learned that there are convenient SMD adapter boards
+available).</p>
+<div class="section" id="c">
+<h3>µC<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h3>
+<p>I did not want to use any of the 8 bit controllers, as it seems to me that they
+are becoming irrelevant. Also, I&#8217;m a fan of the ARM architecture, and
+STMicroelectronics makes ARM based microcontrollers easy to work with for
+amateurs by providing amazingly inexpensive prototyping boards called STM32
+Discovery boards (~$10 as of Q1, 2012). So the choice quickly came down to the
+STM32L, STM32VL or STM32F4 Discovery board. Of these, I ruled out the F4 because
+it is slightly more expensive ($16) and because I didn&#8217;t need the extra
+processing power. Of the two remaining ones, the STM32L Discovery board includes
+an LCD display, which seemed like it would be really useful for debugging, so I
+went with it.</p>
+</div>
+<div class="section" id="high-side-driver">
+<h3>High side driver<a class="headerlink" href="#high-side-driver" title="Permalink to this headline">¶</a></h3>
+<p>I selected the TLC59213 as the high side driver for the following reasons:</p>
+<ul class="simple">
+<li>I wanted to run the design off of a single 5V supply. The TLC59213 accepts
+input levels down to 2V, even when running off of a 5V supply. So it can
+source around 4.4V on each of its output lines based on 3.3V signals from the
+STM32, which leaves a comfortable margin for the voltage drop over the LEDs
+and over the low side driver.</li>
+<li>A single row of LEDs uses 16 x 20mA = 320mA. The TLC59213 is able to drive
+that on a single pin, with good headroom. There are severe restrictions to
+that driving capability but they are not relevant while the display is
+running. See &lt;thoughts on circuit safety&gt; for more information on this.</li>
+</ul>
+<div class="section" id="other-options-considered-for-high-side">
+<h4>Other options considered for high side<a class="headerlink" href="#other-options-considered-for-high-side" title="Permalink to this headline">¶</a></h4>
+<p><strong>UDN2981, UDN2982, MIC2981, MIC2982</strong>: For the purposes of this project, these
+are identical to each other and they would all have worked for this project.
+Their specs are also very similar to the TLC59213 &#8211; they are all Darlington
+arrays. Depending on the manufacturer (the UDN298x designators are used by
+several manufacturers), the specs may be slightly inferior to the TLC59213. For
+this project, the important spec is the driving capability when only one pin is
+on at a 1/16 duty cycle. The TLC59213 costs about the same, has equivalent or
+better specificatons and adds latches and a facility to clear all outputs to the
+basic design of these driver arrays. I wanted the ability to clear the output
+signals for &lt;safety&gt;. I did not end up using the latches, but they can be used
+for multiplexing IO pins on the STM32, so that fewer pins are needed.</p>
+<p><strong>UDN2987</strong>: The &#8216;7 adds over-current protection to the basic Darlington array
+design. It is a nice safety feature, but the chip wasn&#8217;t carried by the
+suppliers I checked.</p>
+<p><strong>LMD18400</strong>: This chip has very impressive specs. It contains MOSFET power
+switches, so it can switch high currents with very low ON resistance. However it
+is very expensive and would have been overkill for this project.</p>
+<p><strong>16 discrete &#8220;logic level&#8221; P-channel MOSFETs, such as IRFD9120</strong>: Not having
+used Darlington arrays before, I thought that these would develop significant
+heat and have a voltage drop that might leave the design marginal on a 5V
+supply. Neither turned out to be the case. The TLC59213s run cool and even after
+the voltage drop over the high side drivers and the LEDs, the constant current
+driver on the low side still has enough to work with. Not knowing this, I first
+unsuccessfully searched for reasonably priced high side driver arrays with
+MOSFET outputs. Not finding any good options for arrays, I researched the option
+of using 16 discrete MOSFETs. I found that even for &#8220;logic level&#8221; MOSFETs, 3.3V
+switching voltage is too low to bring them into their saturated regions (they
+don&#8217;t turn on fully). This means that there is little, if any, benefit to using
+MOSFET / DMOS when driving them with 3.3V, such as that provided by the GPIO
+pins on the STM32 &#8211; which is probably why I was unable to find good options for
+such drivers for this design in the first place.</p>
+</div>
+</div>
+<div class="section" id="low-side-driver">
+<h3>Low side driver<a class="headerlink" href="#low-side-driver" title="Permalink to this headline">¶</a></h3>
+<p>I selected the TLC5941 as the low side driver for the following reasons:</p>
+<ul class="simple">
+<li>It is a constant current driver. The constant current drivers automatically
+compensate for differences in the resistance in the individual LEDs and
+differences between the driving capabilities of each output on the high side,
+causing the LEDs to match each other better in brightness.</li>
+<li>With constant current drivers, there is no need for external resistors for
+each line (16 would be required in this design). Also, because this design
+causes three semiconductors to be coupled in series for each LED, each with a
+non-linear resistance vs. voltage ratio, it&#8217;s seemed like it would be hard to
+calculate the correct resistance without having the parts in hand (in
+particular because I did not have the datasheets for the LEDs). With constant
+current drivers, I didn&#8217;t have to worry about this.</li>
+<li>I had intended on doing grayscale with PWM in firmware. The TLC5941 does
+that itself, making the firmware implementation easier and giving the µC more
+time to run application logic.</li>
+<li>The TLC5941 has dot correction, which can be used to further even out any
+differences in brightness between the LEDs. This compensates for different
+LEDs having different brightness even given the same current. I&#8217;m currently
+not using that functionality.</li>
+<li>It controls all 16 columns with just one chip.</li>
+<li>It is controlled over a serial bus, so fewer GPIO pins on the STM32 are used
+than with plain driver arrays.</li>
+<li>As a bonus, it turns out that the constant current drivers are able to handle
+all 256 LEDs being on at the same time, which makes the design more resistant
+to firmware bugs (see safetly below), than it would have been with plain
+Darlington arrays on the low side.</li>
+</ul>
+<div class="section" id="other-options-considered-for-low-side">
+<h4>Other options considered for low side<a class="headerlink" href="#other-options-considered-for-low-side" title="Permalink to this headline">¶</a></h4>
+<p><strong>ULN2803</strong>: The ULN2803 Darlington array is a common choice for a low side
+driver, but the design would have required two of them, and it has none of the
+advantages of the TLC5941, described above.</p>
+<p><strong>16 discrete &#8220;logic level&#8221; N-channel MOSFETs</strong>: As with the high side, I
+considered using MOSFETs on the low side, and rejected the option for the same
+reasons.</p>
+<p><strong>16 discrete NPN transistors</strong>: The ULN2803 is essentially 8 Darlington
+transistors. In this design, two ULN2803s would have been able to handle the
+current requirements, so there would not have been any advantage to using
+discrete transistors (except maybe price).</p>
+</div>
+</div>
+</div>
+<div class="section" id="overview-of-the-firmware">
+<h2>Overview of the firmware<a class="headerlink" href="#overview-of-the-firmware" title="Permalink to this headline">¶</a></h2>
+<p>The STM32L is set up to run on the 16MHz HSI (High Speed Internal) clock. This
+is an internal oscillator, factory calibrated to be accurate within 2%. The HSI
+is connected to the MCO output pin via a prescaler that is set to 16. This
+causes the MCO to output 1MHz which is connected to the GSCLK on the TLC5941.</p>
+<p>Also connected to the HSI is an internal timer with its prescaler set to 16.
+This causes the timer to be clocked at 1MHz. The timer is set up to trigger an
+interrupt when its value reaches 1024, which is also when the TLC5941 has been
+clocked 1024 times, which corresponds to the number of grayscale steps that can
+be displayed.</p>
+<p>Each time the interrupt is triggered, it sets the high side drivers to enable
+the next row of LEDs and it writes the grayscale values for the new row to the
+low side driver. The number of rows displayed per second is 1MHz / 1024
+grayscales = 976. The display has 16 rows, so the refresh rate is 976 / 16 = 61
+FPS.</p>
+<p>When running in this configuration, the interrupts that drive the display
+take up around 2/3 of the total CPU cycles available to the µC. The other 1/3
+are available for generating content to display. The STM32L is capable of
+running at up to 32MHz, so more cycles can be made available for generating
+content by increasing the core frequency from 16 to 32MHz.</p>
+<p>Also, the STM32L should be able to drive the display almost entirely without
+using CPU cycles by redesigning the firmware to use the SPI peripheral and DMA.</p>
+<div class="section" id="odd-issue-with-the-mco-clock">
+<h3>Odd issue with the MCO clock<a class="headerlink" href="#odd-issue-with-the-mco-clock" title="Permalink to this headline">¶</a></h3>
+<p>When I ran the MCO clock any higher than at 1MHz, I got random flickering on the
+display. The TLC5941 supports GSCLK up to 30MHz and the distance between the
+STM32L and the TLC5941 is short, so the clock should have been able to run much
+faster. However, running it on 1MHz and using 1024 levels of gray is pretty much
+the same as running on, for instance, 4MHz and using 4096 levels of gray since
+even 1024 levels of gray are many more than the human eye can distinguish
+between (that number is probably closer to 32 or so). So, I left the MCO clock
+at 1MHz and did not investigate the issue further.</p>
+</div>
+</div>
+<div class="section" id="other-details-about-the-design">
+<h2>Other details about the design<a class="headerlink" href="#other-details-about-the-design" title="Permalink to this headline">¶</a></h2>
+<p>It is important that VCC of the TLC5941 be connected to the EXT_3V pin on the
+Discovery board (as indicated in the table above). The TLC5941 requires high
+signals to be at least 0.8 VCC. So, even though the TLC5941 can run at 5V, this
+requires high signals to be at least 0.8 * 5V = 4.0V, which is higher than the
+3.3V signals provided by the STM32. I had missed this in the datasheet and had
+at first connected the TLC5941 to the 5V rail. This caused me considerable
+grief as some grayscale values would flicker while others were ok, and I was
+unable to consistently reproduce results I got with different versions of the
+firmware.</p>
+<p>VCC on the TLC59213s must be connected to the 5V rail. As all the current for
+the LEDs flows through the TLC59213 VCCs, connecting this to the EXT_3V pin on
+the Discovery board would break the 3.3V regulator on the Discovery board. The
+regulator is designed to supply the STM32L and have around 100mA extra for
+external circuitry. The LEDs and the drivers use close to 500mA. Also, with a
+3.3V supply, there might not be enough voltage to light up the LEDs. The drop
+across the LEDs is around 2.1V when they run at their maximum rated current of
+20mA. In addition, there are ~0.6V drops over both the high- and the low side
+drivers, which gives a total of 3.3V. So there is nothing to work with for the
+constant current outputs on the TLC5941.</p>
+<p>If you do your own search for drivers for a LED matrix project, in which both
+high side and low side drivers are required, you will find that it&#8217;s easy to
+find low side drivers but that high side drivers are (1) rare, (2) expensive and
+(3) less efficient. Briefly, this is because electron holes do not move as
+easily as electrons do in a semiconductor.</p>
+<p>The TLC5941 is a low side driver. It would have made much more sense for it to
+be a high side driver. This is becase the TLC5941 will almost always be used
+in designs where a single TLC5941 controls multiple rows of LEDs. PNP (high
+side) transistors are less efficient at controlling current than NPN (low side)
+transistors. Since the TLC5941 is a low side driver that controls 16 LEDs, any
+design that uses this chip to control multiple rows is forced to use the less
+efficient PNP transistors for sourcing the current for the rows of LEDs. If the
+TLC5941 was a high side driver, more efficient NPN transistors could be used on
+the low side to sink a full row of 16 LEDs at a time. At the same time, even
+though the TLC5941 would then have had to use PNP transistors to source the
+current, the impact would have been much lower for that chip, since each line
+only has to be able to handle the current for a single LED, not for a whole row
+of LEDs.</p>
+<p>One is left with the sense that the designers of the chip, knowing this, still
+went ahead and made a low side driver to keep the efficiency up and the cost
+down for their part, while knowing that it would cause most users to have to use
+less efficient and more expensive parts overall.</p>
+</div>
+<div class="section" id="thoughts-on-safety-circuitry">
+<h2>Thoughts on safety circuitry<a class="headerlink" href="#thoughts-on-safety-circuitry" title="Permalink to this headline">¶</a></h2>
+<p>For any but the very most trivial of embedded projects, one must decide how
+resistant the hardware should be to firmware bugs.</p>
+<p>A basic example is that a µC might be used for controlling a motor. Turning on
+one relay causes the motor to spin in one directon. Turning on another relay
+causes the motor to spin in the opposite direction (by reversing the polarity).
+Turning on both relays at the same time causes the motor, the power supply or
+both to blow up. There are endless possible variations on the theme. In
+particular, consider machinery with moving parts, where it is only physically
+possible for the machine to move through a concerted set of states, each of
+which has a specific configuration of all the moving parts.</p>
+<p>Do you create additional safety circuitry such as, in this case of the motor,
+using a second relay with more contacts, or do you just write your firmware so
+that it doesn&#8217;t switch on both directions at once?</p>
+<p>In this project, there are no moving parts, but it is still possible for the µC
+to put the hardware into an invalid state. The µC can turn on any number of high
+side outputs at the same time, but the high side drivers are only running within
+their specs when (1) a single output is on at a given time, and (2) when that
+input does not stay on, but is swiftly cycled between each of the possible 16
+outputs.</p>
+<p>Furthermore, the low side driver only runs within its specs when only a single
+high side line is on.</p>
+<p>In other words, simply stopping the program while the LEDs are on could destroy
+one of the high side drivers. And a programming error that turns on more than a
+single line at a time on the high side could destroy both the high side
+and the low side driver.</p>
+<p>While I was first researching components, I considered this and my instinct was
+to build safety into the external circuitry. I added two 74HC238 3-to-8 line
+demultiplexers to the BOM, intending to set up a circuit that would make it
+impossible for the µC to turn on more than a single line at a time on the high
+side drivers.</p>
+<p>Then I realized that this would only protect against one of the two possible
+error scenarios, so I decided on two other safety meassures, weaker because they
+were not entirelly external to the STM32. I wired the blanking pin on the high
+side driver to a GPIO pin on the STM32L, and I added an external pull up
+resistor to the blanking pin on the low side driver. Because the STM32
+automatically leaves most of its GPIO pins floating when it is reset, the pull
+up resistor will turn all the lines of the low side driver off while the STM32
+is in a reset state and before that particular pin has both been configured as
+an output pin and has been set low in the firmware.</p>
+<p>The intended usage for the high side blanking pin was that, after modifying the
+program, I would first start the program with the high side driver blanking pin
+on, then verify with a scope that the signals were correct, then restart the
+program with the blanking pin off. Of course, I only bothered to do this a few
+times in the beginning, and then I started modifying the program without trying
+it first with the blanking pin on.</p>
+<p>So, after working with the program for a while, I eventually introduced a bug
+that turned all the high side pins, except one, on at once (it did the reverse
+of what it was intended to do). However, I was lucky, and no chips were
+destroyed. Turning on all lines at once caused the low side driver to &#8220;see&#8221; 16
+LEDs coupled in parallel on each of its outputs, but its current limitation
+circuitry still worked, so the total on each line was still only 20mA, which is
+a current that the high side drivers can easily handle on each output
+simultaneously. It ran like this for a few minutes, during which time the author
+of the buggy firmware was scratching his head, wondering why there was a dim
+light in all of the LEDs at the same time.</p>
+<p>I also had a few instances where a single high side line was left on for maybe
+30 seconds or so.</p>
+<p>So, if the design had been as vulnerable to these conditions as I thought it
+was, my strategy of not creating real safety in the external circuitry would
+have fried one or more of the chips.</p>
+<p>Actual implementations of such safety features probably vary a lot based on how
+critical the application is. For many applications, there might be no safety, or
+maybe only the prototype had safety. In other cases, there are probably many
+layers of safety in the production system. For instance, one would hope that a
+CT machine does not rely exclusively on firmware to turn off the x-ray generator
+in a timely manner.</p>
+</div>
+<div class="section" id="ideas">
+<h2>Ideas<a class="headerlink" href="#ideas" title="Permalink to this headline">¶</a></h2>
+<p>So, after making this device, one might want to actually use it for something.
+The STM32 chip comes with a bunch of peripherals built in: USB 2, SPI, I²C,
+USART, timers, PWM generators, temperature sensor, multichannel ADC, DACs, LCD
+driver and real-time clock, so projects of this type are easily possible:</p>
+<p>MP3 player, audio recorder, audio visualization (equalizer bars, frequency
+transforms), temperature control and monitoring, &#8220;lie detector&#8221;,
+electrocardiogram, simple games (Snake, Tetris, Pong), weather clock, real time
+date and time with reminders, multimeter. By adding a network stack (such as
+XPort), it can be hooked onto the web and display stock tickers, news headlines
+and tweets.</p>
+</div>
+<div class="section" id="misc-notes">
+<h2>Misc notes<a class="headerlink" href="#misc-notes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="physically-connecting-components-on-a-breadboard">
+<h3>Physically connecting components on a breadboard<a class="headerlink" href="#physically-connecting-components-on-a-breadboard" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Draw an outline of the components on the underside of the breadboard and mark
+their pin #1 locations.</li>
+<li>Mark pin #1 locations on the top side as well.</li>
+<li>When flipping the card over to work on the opposite side, always flip it over
+the vertical axis. It&#8217;s less confusing than flipping it over the horizontal
+axis because it&#8217;s easier to work with a mirror image than one that is upside
+down. Still, make sure to use the drawing and find pin #1 to reorient, so that
+the new changes or connections are not made in a mirror image of what was
+intended.</li>
+<li>Use sockets for the components, because:<ul>
+<li>The design can be powered up without the components first to see if there
+are any short circuits.</li>
+<li>VCC / GND and other connections can be checked on the socket before it&#8217;s
+actually applied to the chip.</li>
+<li>Troubleshooting becomes much easier. For instance, finding why the design
+uses more current than anticipated.</li>
+<li>If a mistake fries a component, it can be replaced without resoldering.</li>
+<li>No heat is applied to the component when soldering.</li>
+<li>Connections can be put under the sockets and still be visible and available
+for modifications.</li>
+<li>It makes it much easier to scavange the parts for other projects later :)</li>
+</ul>
+</li>
+<li>Adding a connection seems to take three hands. One for the soldering iron, one
+for for the solder and one for the wire. Instead of holding the wire in place
+while soldering it &#8220;from scratch&#8221;, cover the hole and the tip of the wire with
+solder. Then put the solder aside and then heat the solder covering the hole
+and push the wire through.</li>
+<li>It&#8217;s easy to lose track of where a trace on the underside of the board goes
+AFTER it gets to the point of the connection one intended to make. Triple
+check that the trace does not go on to somewhere it shouldn&#8217;t. Be suspicios of
+any trace that has more than 2 connection points.</li>
+<li>Be aware that since the copper traces are on the bottom and the wires are at
+the top of the board, one can&#8217;t see a complete circuit at once. When following
+the connections for a circuit, each time the board is turned over, there is
+a potential for losing track.</li>
+<li>Don&#8217;t underestimate the potential for confusion. Tripple check before adding a
+new connection or cutting a trace.</li>
+<li>CAT 5 or CAT 6 network cable is perfect to use for the wired connections on
+both solder and solderless breadboards. The cables have a single copper lead,
+which is always of the same diameter since the cables have to work with
+standardized crimping RJ-45 connectors. One piece of network cable yields
+8 wires of different colors. And, unlike other wires I have tried, the jackets
+do not easily melt while soldering.</li>
+</ul>
+</div>
+<div class="section" id="the-difference-between-working-with-a-solder-and-solderless-breadboard">
+<h3>The difference between working with a solder and solderless breadboard<a class="headerlink" href="#the-difference-between-working-with-a-solder-and-solderless-breadboard" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>When using a solderless breadboard, one has &#8220;built in&#8221; sockets for all the
+components, so all the advantages to using sockets on a soldered breadboard
+design apply when setting up a circuit on a solderless breadboard.</li>
+<li>When setting a connection up on a solderless breadboard, everything is done
+from the top, which prevents all the confusion of having to deal with a mirror
+image and two different views of the circuit.</li>
+<li>Solderless breadboards have no connections that must be cut.</li>
+<li>In short, it is <strong>much</strong> less work to set up a design on a solderless
+breadboard than on a solder breadboard.</li>
+</ul>
+</div>
+<div class="section" id="things-that-i-learned-today">
+<h3>Things that I learned today<a class="headerlink" href="#things-that-i-learned-today" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Datasheets are point-of-sale documents. They highlight selling points and are
+opaque about the weaknesses of the devices.</li>
+<li>On digikey.com and mouser.com, components that can be used on breadboards
+(non-SMD) can be found by using the &#8220;through hole&#8221; filter.</li>
+<li>The selection in &#8220;through hole&#8221; components is much smaller than the selection
+for SMD components.</li>
+<li>There are switch mode voltage regulators that are almost as easy to use as
+linear voltage regulators.</li>
+<li>BJT transistors are cheaper than FET but must have resistors to limit base
+current.</li>
+<li>FET transistors are expensive but don&#8217;t need resistors to limit gate
+current.</li>
+<li>There is a type of FET called &#8220;logic level&#8221;, which can be controlled directly
+by 3.3V or 5V logic.</li>
+<li>PNP conducts more when the base becomes more negative in relation to the
+negative side.</li>
+<li>NPN conducts more when the base becomes more positive in relation to the
+positive side.</li>
+<li>The positive side is collector on NPN and emitter on PNP.</li>
+<li>It&#8217;s possible to use PNP on the low side and/or NPN on the high side by using
+two or three power supplies.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="alternative-design">
+<h2>Alternative design<a class="headerlink" href="#alternative-design" title="Permalink to this headline">¶</a></h2>
+<p>A common way to do this kind of LED matrix is to use a design based on parts:</p>
+<ul class="simple">
+<li>2x 74HC164 (8-bit shift register)</li>
+<li>2x ULN2803 (8 Darlington driver)</li>
+<li>16x 100OHM resistor or DIP resistor packs</li>
+</ul>
+<p>The problem with this method is that no 74HC164 chips are rated for the 8x20 =
+160mA total output that will fully light up a row of regular 20mA LEDs.
+Typically, the 74 chips have an absolute max of 50mA. Still, apparently, it
+works (at least for a while).</p>
+<p>Also, as the are no constant current drivers, the brightness of the LEDs will
+probably be uneven. And since the 74HC164 are operated well beyond their specs,
+the brightness of the LEDs will probably vary as different numbers of LEDs are
+lit.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../index_misc.html" title="Misc"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../../index_hardware.html" title="Hardware"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_hardware.html" >Hardware</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

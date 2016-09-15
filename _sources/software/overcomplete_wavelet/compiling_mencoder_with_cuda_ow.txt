@@ -1,0 +1,94 @@
+_`Compiling MEncoder with CUDA OW`
+==================================
+
+MEncoder 64 bit builds are currently tricky (though this is changing), so we
+will make a 32 bit build.
+
+The overcomplete wavelet solution is set up with two projects, one that creats
+the overcomplete wavelet DLL that links to the CUDA DLL and one GUI project that
+uses the DLL. The OW DLL project is set up for both x86 and x64 builds while the
+OW GUI project is set up only for 64 bit builds.
+
+1. In VC++, switch the OW DLL project over to x86 Release build targets and
+   build it. The OW GUI project won't build in 32 bit.
+
+#. To compile MEncoder, we need MinGW and MSYS. MinGW is a port of GCC that
+   creates native Windows executables. MSYS is a port of BASH for Windows that
+   juggles paths around to make things look like a Unix environment.
+
+   * Install MinGW in C:\\MinGW
+   * Install MSYS in C:\\MSYS.
+     * Only need MSYS Base System.
+     * Type "c:/mingw" (without the quotes) when prompted. Note the forward
+     slash.
+
+#. Copy ow.h from this project to C:\\msys\\1.0\\local\\include (Create the
+   directory if required).
+
+#. Copy the x86 Release version of ow.dll that you just compiled to
+   C:\\msys\\1.0\\local\\lib (Create the directory if required).
+
+#. Add local lib and include dir to GCC:
+
+   * Start MSYS BASH by double clicking the icon on the desktop.
+  
+   * Create a specs file::
+  
+     $ gcc -dumpspecs > specs
+  
+   * Move specs file to /mingw/lib/gcc/mingw32/<version>/specs, where <version>
+     is the gcc version number. This folder will already exist.
+  
+   * Open the specs file.
+  
+   * Add include directories to the search path:
+  
+       Modify the \*cpp: section::
+  
+         *cpp: %{posix:-D_POSIX_SOURCE} %{mthreads:-D_MT}
+  
+       To::
+  
+         *cpp: %{posix:-D_POSIX_SOURCE} %{mthreads:-D_MT} -I c:/msys/1.0/local/include
+  
+   * Add lib directories to the search path:
+  
+       Modify the \*link_libgcc: section::
+  
+         *link_libgcc: %D
+  
+       To::
+ 
+         *link_libgcc: %D -L c:/msys/1.0/local/lib
+  
+   * Save the specs file. Make sure you save the specs file with UNIX line endings.
+
+#. Download the source snapshot .bz2 file of x264 and move it into your MSYS home
+   folder. The home folder was created when you installed MSYS and matches your
+   Windows username.
+   
+#. Unzip and build x264::
+
+    $ tar xjf x264...
+    $ cd x264...
+    $ ./configure
+    $ ./make
+    $ ./make install
+
+#. Download the source snapshot .bz2 file of MPlayer into move into your MSYS
+   home folder.
+
+#. Unzip MPlayer::
+
+    $ tar xjf mplayer...
+
+#. Replace C:\\msys\\1.0\\home\\...\\libmpcodecs\\vf_ow.c with vf_ow_cuda.c
+   (vf_ow_cuda.c must be renamed to vf_ow.c)
+
+#. Build MPlayer and MEncoder::
+    $ cd mplayer...
+    $ ./configure --extra-libs=-low
+    $ ./make
+
+#. Copy /bin/mencoder.exe to Windows. Copy the previously compiled ow.dll to
+   same Windows folder.

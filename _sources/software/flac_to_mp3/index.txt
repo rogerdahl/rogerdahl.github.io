@@ -1,0 +1,39 @@
+:download: Windows#flac_to_mp3.py
+
+:technologies: Python|FLAC|MP3
+
+
+FLAC to MP3
+===========
+
+Convert FLAC to MP3 while preserving the metadata (tags).
+
+
+Usage
+-----
+
+Run flac_to_mp3.py in the folder that contains the FLAC files.
+
+The following tags are preserved: artist, album, year, tracknumber, title and genre.
+
+
+Install
+-------
+
+This script is tested on Linux.
+
+* Install the FLAC package.
+* Install the LAME package.
+* Download the flac_to_mp3.py script.
+* The script uses high quality settings for Lame. The settings can be changed
+  by changing the lame_opts string in the script.
+
+
+Implementation
+--------------
+
+Strategy
+~~~~~~~~
+
+* Use **metaflac** (normally included with FLAC) to get the metadata.
+* Use the **FLAC** and **LAME** command line utilities for doing the conversion.

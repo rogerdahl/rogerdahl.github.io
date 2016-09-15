@@ -1,0 +1,277 @@
+:download: Windows 64#cuda_fill_media_exe.7z|Source#cuda_fill_media_src.7z
+
+:technologies: C++|CUDA C|JSON|Boost
+
+
+CUDA Fill Media
+===============
+
+Fit set of files onto set of media of given size.
+
+
+Usage
+-----
+
+Use the *--folder* option to add files or folders and the *--rfolder* option to
+add files. Both optiones recursively add all files found in the specified
+folders and below. The difference between the swithces is that *--folder* will
+not let any of the folders within the root folder separated out to different
+media while the *--rfolder* option allows the files to be separated. *--folder*
+preserves the name of the folder that the files are in throughout the process,
+while *--rfolder* uses only the filenames. For example, consider the following
+folder structure:
+
+::
+
+  root
+    folder1
+      file1
+    folder2
+      file2
+      file3
+    file4
+
+*--folder root* will cause the app to fit the following three items to media:
+
+- folder1 (having the size of file1)
+- folder2 (having the size of file2 + file3)
+- file4
+
+*--rfolder root* will cause the app to fit the four files to media:
+
+- file1
+- file2
+- file3
+- file4
+
+Use the *--media_free* option to specify media size (see table below). Add the
+*--first_medium_free* option if you have a different amount of free space
+available on the first media.
+
+If you intend do manually write the files to media, just let the JSON be output
+to stdout. The JSON is human readable. If you intend to process the output
+automatically, write it to a file with *--output* or pipe it.
+
+
+Command line
+~~~~~~~~~~~~
+
+::
+
+  fill_media - Fit set of files onto set of media of given size - dahlsys.com:
+    -h [ --help ]                  produce help message
+    -f [ --folder ] arg            add source folder (adds files or folders)
+    -r [ --rfolder ] arg           add recursive source folder (adds files)
+    -v [ --verbose ]               display verbose messages
+    -m [ --media_free ] arg        media size. ? for options
+    -i [ --first_medium_free ] arg other size for first medium. ? for options
+    -c [ --cuda_device ] arg       cuda device
+    -o [ --output ] arg            output json to file instead of stdout
+
+
+Possible choices for *--medium_free* and *--first_medium_free*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+============ ===================================
+  <number>   number bytes
+  <number>K  number * 1024 bytes (KiB)
+  <number>M  number * 1,048,576 bytes (MiB)
+  <number>G  number * 1,073,741,824 bytes (GiB)
+
+  cd650        681,574,400 bytes (650MiB)
+  cd700        737,148,928 bytes (703MiB)
+  cd800        829,423,616 bytes (791MiB)
+  cd900        912,261,120 bytes (870MiB)
+
+  dvd1       1,460,288,880 bytes (1.36GiB)
+  dvd2       2,652,142,305 bytes (2.47GiB)
+  dvd3       2,920,577,761 bytes (2.72GiB)
+  dvd4       5,315,022,028 bytes (4.95GiB)
+  dvd5       4,702,989,189 bytes (4.38GiB)
+  dvd9       8,536,247,500 bytes (7.95GiB)
+  dvd10      9,395,240,960 bytes (8.75GiB)
+  dvd14      13,239,236,689 bytes (12.33GiB)
+  dvd18      17,072,495,001 bytes (15.90GiB)
+
+  bdmini     7,791,181,824 bytes (7,430 GiB)
+  bdminidd   15,582,363,648 bytes (14,860 GiB)
+  bd         25,025,314,816 bytes (23,866 GiB)
+  bddd       50,050,629,632 bytes (47,732 GiB)
+============ ===================================
+
+
+Example output (JSON)
+~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+  [
+      {
+          "index" : 1,
+          "files" : [
+              "D:\\testfiles\\test5"
+          ],
+          "free" : 7535558
+      },
+      {
+          "index" : 2,
+          "files" : [
+              "D:\\testfiles\\test6",
+              "D:\\testfiles\\test4"
+          ],
+          "free" : 109343727
+      },
+      {
+          "index" : 3,
+          "files" : [
+              "D:\\testfiles\\test1"
+          ],
+          "free" : 6412153
+      },
+      {
+          "index" : 4,
+          "files" : [
+              "D:\\testfiles\\test2",
+              "D:\\testfiles\\test3"
+          ],
+          "free" : 189030821
+      },
+      {
+          "index" : 5,
+          "files" : [
+              "D:\\testfiles\\test7",
+              "D:\\testfiles\\test8",
+              "D:\\testfiles\\test9",
+          ],
+          "free" : 534496517
+      }
+  ]
+
+
+Limitations
+~~~~~~~~~~~
+
+This app works best when the files are big enough that only a few (between 1 and
+20) files fit onto each media (see `Implementation`_ below) and the size of the
+files is fairly varied.
+
+There are a number of situations where this application will not perform well:
+
+* If the files are much smaller than the size of the media, reordering the files
+  to the optimal fit will not save much space as opposed to random ordering.
+
+* If each of the files are larger than half of the size of the media, the only
+  possible fit is one file per media. Similar situations arise at other uniform
+  file sizes.
+
+
+Implementation
+--------------
+
+Strategy
+~~~~~~~~
+
+* Scan all folders provided by user and store path and size for each file.
+
+* Divide files into groups where each group is small enough that all possible
+  permutations within the group can be tested.
+
+* Starting with the first group, check how each possible ordering of the files
+  would fit onto a set of media. The ordering that uses fewest media and leaves
+  the most free space on the last media wins.
+
+* Repeat for each successive group, using the amount of free space left from the
+  previous group as a starting point.
+
+* Output the result as JSON that can be easily consumed by other apps.
+
+
+Group size
+~~~~~~~~~~
+
+The application currently uses a fixed group size of 10 files, resulting in
+3,628,800 combinations that must be checked for each group. The group size is
+hard coded because increasing it above 10 would slightly increase the complexity
+of the app due to a hardware limitation of the GPU.
+
+Exhaustively trying all possible combinations would give perfect results. But
+given that the progression of possible combinations is the factorial of the
+number of files, a brute force approach is only possible for a very small number
+of files, or an apprach like this app uses, where a larger number of files
+is split into small groups and the groups are processed separately. Below is a
+table that illustrates this. 1,000 files is far from an unreasonable number of
+files that you might want to fit onto media.
+
+=================== ============================================================
+Number of files (n) Permutations (n!)
+=================== ============================================================
+8                   40,320
+9                   362,880
+10                  3,628,800
+11                  39,916,800
+12                  479,001,600
+13                  6,227,020,800
+14                  87,178,291,200
+15                  1,307,674,368,000
+1000                40,238,726,007,709,377,354,370,243,392,300,398,571,937,486,
+                    421,071,463,254,379,991,042,993,851,239,862,902,059,204,420,
+                    848,696,940,480,047,998,861,019,719,605,863,166,687,299,480,
+                    855,890,132,382,966,994,459,099,742,450,408,707,375,991,882,
+                    362,772,718,873,251,977,950,595,099,527,612,087,497,546,249,
+                    704,360,141,827,809,464,649,629,105,639,388,743,788,648,733,
+                    711,918,104,582,578,364,784,997,701,247,663,288,983,595,573,
+                    543,251,318,532,395,846,307,555,740,911,426,241,747,434,934,
+                    755,342,864,657,661,166,779,739,666,882,029,120,737,914,385,
+                    371,958,824,980,812,686,783,837,455,973,174,613,608,537,953,
+                    452,422,158,659,320,192,809,087,829,730,843,139,284,440,328,
+                    123,155,861,103,697,680,135,730,421,616,874,760,967,587,134,
+                    831,202,547,858,932,076,716,913,244,842,623,613,141,250,878,
+                    020,800,026,168,315,102,734,182,797,770,478,463,586,817,016,
+                    436,502,415,369,139,828,126,481,021,309,276,124,489,635,992,
+                    870,511,496,497,541,990,934,222,156,683,257,208,082,133,318,
+                    611,681,155,361,583,654,698,404,670,897,560,290,095,053,761,
+                    647,584,772,842,188,967,964,624,494,516,076,535,340,819,890,
+                    138,544,248,798,495,995,331,910,172,335,555,660,213,945,039,
+                    973,628,075,013,783,761,530,712,776,192,684,903,435,262,520,
+                    001,588,853,514,733,161,170,210,396,817,592,151,090,778,801,
+                    939,317,811,419,454,525,722,386,554,146,106,289,218,796,022,
+                    383,897,147,608,850,627,686,296,714,667,469,756,291,123,408,
+                    243,920,816,015,378,088,989,396,451,826,324,367,161,676,217,
+                    916,890,977,991,190,375,403,127,462,228,998,800,519,544,441,
+                    428,201,218,736,174,599,264,295,658,174,662,830,295,557,029,
+                    902,432,415,318,161,721,046,583,203,678,690,611,726,015,878,
+                    352,075,151,628,422,554,026,517,048,330,422,614,397,428,693,
+                    306,169,089,796,848,259,012,545,832,716,822,645,806,652,676,
+                    995,865,268,227,280,707,578,139,185,817,888,965,220,816,434,
+                    834,482,599,326,604,336,766,017,699,961,283,186,078,838,615,
+                    027,946,595,513,115,655,203,609,398,818,061,213,855,860,030,
+                    143,569,452,722,420,634,463,179,746,059,468,257,310,379,008,
+                    402,443,243,846,565,724,501,440,282,188,525,247,093,519,062,
+                    092,902,313,649,327,349,756,551,395,872,055,965,422,874,977,
+                    401,141,334,696,271,542,284,586,237,738,753,823,048,386,568,
+                    897,646,192,738,381,490,014,076,731,044,664,025,989,949,022,
+                    222,176,590,433,990,188,601,856,652,648,506,179,970,235,619,
+                    389,701,786,004,081,188,972,991,831,102,117,122,984,590,164,
+                    192,106,888,438,712,185,564,612,496,079,872,290,851,929,681,
+                    937,238,864,261,483,965,738,229,112,312,502,418,664,935,314,
+                    397,013,742,853,192,664,987,533,721,894,069,428,143,411,852,
+                    015,801,412,334,482,801,505,139,969,429,015,348,307,764,456
+=================== ============================================================
+
+
+Kernel performance
+~~~~~~~~~~~~~~~~~~
+
+I have made no attempt at optimizing this kernel. I checked the instruction
+throughput in the profiler and it is extremely low.
+
+Todo
+----
+
+* Optimize the kernel.
+* Use a proper fitting algorithm. This application uses a brute force approach.
+  Data fitting algorithms have been a field of study for a long time and better
+  algorithms are available. One approach I've considered is to try using
+  Simulated Annealing (SA) for this task.
+* Implement a CPU version of the kernel and use it automatically if CUDA is not
+  available.

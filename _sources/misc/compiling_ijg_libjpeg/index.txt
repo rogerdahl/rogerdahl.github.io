@@ -1,0 +1,51 @@
+How to compile the IJG JPEG library (libjpeg) for Visual Studio 2010
+====================================================================
+
+This procedure should also work for Visual Studio 2012 and later.
+
+* Go to http://www.ijg.org/files and download the latest version of the JPEG
+  library. As of Oct 2013, that is version 9, at
+  http://www.ijg.org/files/jpegsr9.zip
+
+* Unzip the package.
+
+* Open a Visual Studio Command Prompt:
+
+  * Type "prompt" in Windows 7 Start, or go to Microsoft Visual Studio 2010 /
+    Visual Studio Tools.
+  * On a 64 bit machine, just use the regular x86 command prompt.
+
+* In the command prompt, CD to the root of the uncompressed library directory.
+
+* Create Visual Studio project files::
+
+  > nmake -f makefile.vc setup-v10
+
+* Close the command prompt.
+
+* Open the jpeg.sln file from Windows Explorer.
+
+* Build the desired version by adjusting the property pages for the project:
+
+  * Set runtime to match the rest of yor project:
+
+    * ``Configuration Properties > C/C++ > Code Generation``
+
+  * Set up x64 build:
+
+    * ``Configuration Manager > Active Solution Platform > New``
+
+  * Note that building a DLL does not work (A DLL is created but it is not
+    usable as there are no exported symbols).
+
+* To use the library:
+
+  * Add the root folder of the library to the include search path. For
+    instance, ``C:\jpegsr9\jpeg-9``
+
+    * ``Configuration Properties > C/C++ > General > Additional Include Directories``
+
+  * Add the appropriate folder with a compiled binary to the lib path. For
+    instance, ``C:\jpegsr9\jpeg-9\Release``
+
+    * ``Configuration Properties > Linker > Additional Library Directories``

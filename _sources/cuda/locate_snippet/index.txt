@@ -1,0 +1,116 @@
+:download: Windows 64#cuda_locate_snippet_exe.7z|Source#cuda_locate_snippet_src.7z
+
+:technologies: C++|CUDA C|Boost::GIL
+
+
+CUDA Locate Snippet
+===================
+
+This is a small app that takes two jpeg images as input, where one of the images
+is a cutout ("snippet") of the other, and then creates a third image where the
+location of the cutout is marked.
+
+.. figure:: example.jpg
+  :width: 100%
+
+
+Usage
+-----
+
+The app processes a batch of images. Only jpeg images are supported. Place the
+full images in the `pix/full` folder and the snippets in the `pix/snippets`
+folder. The image names must be exactly the same for the two sets of images.
+Each image in the `pix/full` folder must have a corresponding image in the
+`pix/snippets` folder. The app writes the tagged images to `pix/tags`, in jpeg
+format. The jpegs are stored with 90% quality. If another quality is desired,
+the source code must be altered and the app recompiled. When preparation of the
+images has been completed, run the executable.
+
+
+Implementation
+--------------
+
+A simple, exhaustive search is performed. For each possible location of the
+snippet in the full image, the sum of absolute differences between the grayscale
+values of each pixel is calculated. The position in which the sum of differences
+is lowest is selected as the result.
+
+The algorithm was first implemented in Python. The search took around 1 day per
+image and was too slow for my needs. The CUDA implementation was almost four
+orders of magnitude faster (Around 7000x). I have not optimized either
+implementations. The Python implementation took 30 minutes to write. The CUDA
+implementation took half a day.
+
+Python implementation:
+
+::
+
+  #!/usr/bin/env python
+  # -*- coding: utf-8 -*-
+
+  import Image
+  import ImageDraw
+  import os
+  import sys
+
+  full_path = './pix/full'
+  snippets_path = './pix/snippets'
+  tagged_path = './pix/tags'
+
+
+  def diff(full, snip, snip_w, snip_h, x_off, y_off):
+    delta = 0
+    for ys in range(snip_h):
+      for xs in range(snip_w):
+        full_pixel = full[xs + x_off, ys + y_off]
+        snip_pixel = snip[xs, ys]
+        delta += abs(full_pixel - snip_pixel)
+    return delta
+
+
+  def draw_box(image_name, x1, y1, x2, y2):
+    full = Image.open(os.path.join(full_path, image_name))
+    draw = ImageDraw.Draw(full)
+    draw.rectangle((x1, y1, x2, y2))
+    draw.rectangle((x1 - 1, y1 - 1, x2 + 1, x2 + 2), outline=0)
+    full.save(os.path.join(tagged_path, image_name), quality=90)
+
+
+  def match(image_name):
+    full = Image.open(os.path.join(full_path, image_name)).convert('L')
+    snip = Image.open(os.path.join(snippets_path, os.path.splitext(image_name)[0] + '.jpg')).convert('L')
+    print image_name
+
+    full_mem = full.load()
+    snip_mem = snip.load()
+
+    full_w = full.size[0]
+    full_h = full.size[1]
+
+    snip_w = snip.size[0]
+    snip_h = snip.size[1]
+
+    min_delta = sys.maxint
+    min_x = 0
+    min_y = 0
+
+    for ys in range(full_h - snip_h):
+      for xs in range(full_w - snip_w):
+        delta = diff(full_mem, snip_mem, snip_w, snip_h, xs, ys)
+        if delta < min_delta:
+          min_delta = delta
+          min_x = xs
+          min_y = ys
+
+      print '{:.03}%'.format(float(ys) / (full_h - snip_h) * 100.0)
+
+    draw_box(image_name, min_x, min_y, min_x + snip_w, min_y + snip_h)
+
+
+  def main():
+    for image_path in os.listdir(full_path):
+      match(image_path)
+
+
+  if __name__ == '__main__':
+    main()

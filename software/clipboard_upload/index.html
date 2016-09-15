@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Clipboard Upload &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="Command Line" href="../../index_cmd.html" />
+    <link rel="next" title="FLAC to MP3" href="../flac_to_mp3/index.html" />
+    <link rel="prev" title="RenRe - Batch regex renaming of files and folders" href="../renre/index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../flac_to_mp3/index.html" title="FLAC to MP3"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../renre/index.html" title="RenRe - Batch regex renaming of files and folders"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cmd.html" accesskey="U">Command Line</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Clipboard Upload</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#install">Install</a></li>
+<li><a class="reference internal" href="#tips">Tips</a></li>
+<li><a class="reference internal" href="#implementation">Implementation</a><ul>
+<li><a class="reference internal" href="#strategy">Strategy</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#todo">Todo</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+      <hr><ul><li class="dl_l1">Download</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l1_os">Windows<br><a href="/static/clipboard_upload.py">clipboard_upload.py</a></li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">Python</li>
+<li class="dl_l2">Python Image Library (PIL)</li>
+<li class="dl_l2">Paramiko (for SFTP)</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../renre/index.html"
+                        title="previous chapter">RenRe - Batch regex renaming of files and folders</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../flac_to_mp3/index.html"
+                        title="next chapter">FLAC to MP3</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="clipboard-upload">
+<h1>Clipboard Upload<a class="headerlink" href="#clipboard-upload" title="Permalink to this headline">¶</a></h1>
+<p>Upload files or data from your computer to your website with a single click
+by using the clipboard.</p>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>To share a couple of files with someone:</p>
+<ul class="simple">
+<li>Select the files in a file manager and <em>Copy</em>.</li>
+<li>Run clipboard_upload.py.</li>
+<li><em>Paste</em> the HTTP links now in the clipboard into an email or instant message.</li>
+</ul>
+<p>To upload an image:</p>
+<ul class="simple">
+<li><em>Copy</em> some image data to the clipboard, for instance by pressing the Print
+Screen key.</li>
+<li>Run clipboard_upload.py</li>
+<li><em>Paste</em> the HTTP link now in the clipboard. It will point to a generated image
+file on the web server (.png by default).</li>
+</ul>
+<p>To upload some text:</p>
+<ul class="simple">
+<li>In a text editor, select the text and <em>Copy</em>.</li>
+<li>Run clipboard_upload.py</li>
+<li><em>Paste</em> the HTTP link now in the clipboard. It will point to a .txt file on
+the web server.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<p>This script works only on Windows.</p>
+<ul class="simple">
+<li>Download the clipboard_upload.py file and store it somewhere convenient.</li>
+<li>Create a shortcut to the .py file by dragging it onto the Windows start button.</li>
+<li>Download and install Python from <a class="reference external" href="http://www.python.org/getit/">http://www.python.org/getit/</a>.</li>
+<li>Download and install Python Image Library (PIL) from
+<a class="reference external" href="http://www.pythonware.com/products/pil/">http://www.pythonware.com/products/pil/</a>.</li>
+<li>Download and install PyCrypto. It&#8217;s easiest to install from the precompiled
+binaries at <a class="reference external" href="http://www.voidspace.org.uk/python/modules.shtml#pycrypto">http://www.voidspace.org.uk/python/modules.shtml#pycrypto</a>.</li>
+<li>Download and install Paramiko from <a class="reference external" href="http://www.lag.net/paramiko/">http://www.lag.net/paramiko/</a>.</li>
+<li>Download and install PyWin32 from
+<a class="reference external" href="http://sourceforge.net/projects/pywin32/files/">http://sourceforge.net/projects/pywin32/files/</a>.</li>
+<li>Create a folder on your web server that is accessible through the web.</li>
+<li>Create a user that has permissions to store files in that folder (or use an
+existing user, but note that the script is required to hold the password for
+this user in clear text).</li>
+<li>Open the clipboard_upload.py file in a text editor and edit the configuration
+settings. Notes on the settings are in the file.</li>
+</ul>
+</div>
+<div class="section" id="tips">
+<h2>Tips<a class="headerlink" href="#tips" title="Permalink to this headline">¶</a></h2>
+<p>Common ways of getting image data into the clipboard are:</p>
+<ul class="simple">
+<li>Print Screen: Get a screenshot of the entire screen.</li>
+<li>Alt + Print Screen: Get a screenshot of the program that currently has focus.</li>
+<li>Windows 7 Snipping Tool: Get a screenshot of any area of the screen.</li>
+<li>Right click an image in Firefox and select <em>Copy Image</em>.</li>
+</ul>
+</div>
+<div class="section" id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="strategy">
+<h3>Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Use the clipboard as a staging area for uploading to a web server. After the
+upload, replace the contents in the clipboard with links to the uploaded data.</li>
+<li>Upload regular files by copying them to the clipboard in a file manager. For
+regular files, create files on the web server with names matching the ones in
+the clipboard (overwriting any existing files with those names)</li>
+<li>Upload image and text data by dynamically creating files on the web server
+with randomly generated names that will not overlap.</li>
+<li>Use SFTP to upload the data.</li>
+<li>Upload to a folder on the web server that is available through HTTP.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="todo">
+<h2>Todo<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Support HTML fragments.</li>
+<li>Support 3rd party file hosting services.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../flac_to_mp3/index.html" title="FLAC to MP3"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../renre/index.html" title="RenRe - Batch regex renaming of files and folders"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cmd.html" >Command Line</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

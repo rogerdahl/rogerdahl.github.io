@@ -1,0 +1,12 @@
+:disable_comments: disable_comments
+
+Command Line
+============
+
+.. toctree::
+  :maxdepth: 1
+
+  software/duplex/index.rst
+  software/renre/index.rst
+  software/clipboard_upload/index.rst
+  software/flac_to_mp3/index.rst

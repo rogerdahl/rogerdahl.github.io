@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Hello Mandelbrot &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="CUDA" href="../../index_cuda.html" />
+    <link rel="next" title="GUI" href="../../index_gui.html" />
+    <link rel="prev" title="CUDA Collatz" href="../collatz/index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../index_gui.html" title="GUI"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../collatz/index.html" title="CUDA Collatz"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li><a href="../../index_cuda.html" accesskey="U">CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+
+  
+    <p>
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">CUDA C</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../collatz/index.html"
+                        title="previous chapter">CUDA Collatz</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../../index_gui.html"
+                        title="next chapter">GUI</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="hello-mandelbrot">
+<h1>Hello Mandelbrot<a class="headerlink" href="#hello-mandelbrot" title="Permalink to this headline">¶</a></h1>
+<div class="right-flow container">
+<img alt="../../_images/mandelbrot.png" class="align-left" src="../../_images/mandelbrot.png" />
+<p>This is a Hello World program for CUDA. It calculates a Mandelbrot fractal and
+saves it in a PPM image file, which can be opened in most image viewers.</p>
+<p>Since the only reason to run software on the GPU is to speed it up, the
+example includes a timer that prints the execution time. No CUDA program
+should be without error checking, so that is included as well.</p>
+<p>To run, save the code to <tt class="docutils literal"><span class="pre">hello.cu</span></tt> and compile it with <tt class="docutils literal"><span class="pre">nvcc</span> <span class="pre">-o</span> <span class="pre">hello</span>
+<span class="pre">hello.cu</span></tt>. The program will run for less than a second. When it exits, there
+will be a new file in the same directory, <tt class="docutils literal"><span class="pre">mandelbrot.ppm</span></tt>, which can be
+opened in an image viewer to see the fractal, shown here on the left.</p>
+</div>
+<div class="highlight-c++"><div class="highlight"><pre><span class="cp">#include &lt;cuda.h&gt;</span>
+<span class="cp">#include &lt;fstream&gt;</span>
+<span class="cp">#include &lt;stdio.h&gt;</span>
+<span class="cp">#include &lt;cassert&gt;</span>
+
+<span class="k">const</span> <span class="kt">int</span> <span class="n">bailout</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">;</span>
+<span class="k">const</span> <span class="kt">int</span> <span class="n">w</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">;</span>
+<span class="k">const</span> <span class="kt">int</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">;</span>
+
+<span class="k">typedef</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">u32</span><span class="p">;</span>
+<span class="k">typedef</span> <span class="kt">unsigned</span> <span class="kt">char</span> <span class="n">u8</span><span class="p">;</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">std</span><span class="p">;</span>
+
+<span class="cp">#define check_cuda_call(ans) { _check_cuda_call((ans), __FILE__, __LINE__); }</span>
+<span class="kr">inline</span> <span class="kt">void</span> <span class="nf">_check_cuda_call</span><span class="p">(</span><span class="n">cudaError_t</span> <span class="n">code</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">file</span><span class="p">,</span> <span class="kt">int</span> <span class="n">line</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">code</span> <span class="o">!=</span> <span class="n">cudaSuccess</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">fprintf</span><span class="p">(</span><span class="n">stderr</span><span class="p">,</span><span class="s">&quot;CUDA Error: %s %s %d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">cudaGetErrorString</span><span class="p">(</span><span class="n">code</span><span class="p">),</span> <span class="n">file</span><span class="p">,</span> <span class="n">line</span><span class="p">);</span>
+    <span class="n">exit</span><span class="p">(</span><span class="n">code</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1">// EventTimer by Mark Harris.</span>
+<span class="k">class</span> <span class="nc">EventTimer</span> <span class="p">{</span>
+<span class="nl">public:</span>
+  <span class="n">EventTimer</span><span class="p">()</span> <span class="o">:</span> <span class="n">mStarted</span><span class="p">(</span><span class="nb">false</span><span class="p">),</span> <span class="n">mStopped</span><span class="p">(</span><span class="nb">false</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">cudaEventCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mStart</span><span class="p">);</span>
+    <span class="n">cudaEventCreate</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mStop</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="o">~</span><span class="n">EventTimer</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">cudaEventDestroy</span><span class="p">(</span><span class="n">mStart</span><span class="p">);</span>
+    <span class="n">cudaEventDestroy</span><span class="p">(</span><span class="n">mStop</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="kt">void</span> <span class="n">start</span><span class="p">(</span><span class="n">cudaStream_t</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">cudaEventRecord</span><span class="p">(</span><span class="n">mStart</span><span class="p">,</span> <span class="n">s</span><span class="p">);</span>
+    <span class="n">mStarted</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="n">mStopped</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="kt">void</span> <span class="n">stop</span><span class="p">(</span><span class="n">cudaStream_t</span> <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>  <span class="p">{</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">mStarted</span><span class="p">);</span>
+    <span class="n">cudaEventRecord</span><span class="p">(</span><span class="n">mStop</span><span class="p">,</span> <span class="n">s</span><span class="p">);</span>
+    <span class="n">mStarted</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+    <span class="n">mStopped</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+  <span class="p">}</span>
+  <span class="kt">float</span> <span class="n">elapsed</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">assert</span><span class="p">(</span><span class="n">mStopped</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">mStopped</span><span class="p">)</span> <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">cudaEventSynchronize</span><span class="p">(</span><span class="n">mStop</span><span class="p">);</span>
+    <span class="kt">float</span> <span class="n">elapsed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">cudaEventElapsedTime</span><span class="p">(</span><span class="o">&amp;</span><span class="n">elapsed</span><span class="p">,</span> <span class="n">mStart</span><span class="p">,</span> <span class="n">mStop</span><span class="p">);</span>
+    <span class="k">return</span> <span class="n">elapsed</span><span class="p">;</span>
+  <span class="p">}</span>
+
+<span class="nl">private:</span>
+  <span class="kt">bool</span> <span class="n">mStarted</span><span class="p">,</span> <span class="n">mStopped</span><span class="p">;</span>
+  <span class="n">cudaEvent_t</span> <span class="n">mStart</span><span class="p">,</span> <span class="n">mStop</span><span class="p">;</span>
+<span class="p">};</span>
+
+
+<span class="n">__global__</span> <span class="kt">void</span> <span class="nf">MandelbrotKernel</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">out</span><span class="p">,</span> <span class="kt">float</span> <span class="n">cr1</span><span class="p">,</span> <span class="kt">float</span> <span class="n">cr2</span><span class="p">,</span> <span class="kt">float</span> <span class="n">ci1</span><span class="p">,</span> <span class="kt">float</span> <span class="n">ci2</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">u32</span> <span class="n">x</span><span class="p">(</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">x</span><span class="p">);</span>
+  <span class="n">u32</span> <span class="n">y</span><span class="p">(</span><span class="n">blockIdx</span><span class="p">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">blockDim</span><span class="p">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">threadIdx</span><span class="p">.</span><span class="n">y</span><span class="p">);</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="n">w</span> <span class="o">||</span> <span class="n">y</span> <span class="o">&gt;=</span> <span class="n">h</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">return</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kt">float</span> <span class="n">cr</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">w</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">cr2</span> <span class="o">-</span> <span class="n">cr1</span><span class="p">)</span> <span class="o">+</span> <span class="n">cr1</span><span class="p">;</span>
+  <span class="kt">float</span> <span class="n">ci</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">/</span> <span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">h</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">ci2</span> <span class="o">-</span> <span class="n">ci1</span><span class="p">)</span> <span class="o">+</span> <span class="n">ci1</span><span class="p">;</span>
+
+  <span class="kt">float</span> <span class="n">zi</span> <span class="o">=</span> <span class="mf">0.0f</span><span class="p">,</span> <span class="n">zr</span> <span class="o">=</span> <span class="mf">0.0f</span><span class="p">,</span> <span class="n">zr2</span> <span class="o">=</span> <span class="mf">0.0f</span><span class="p">,</span> <span class="n">zi2</span> <span class="o">=</span> <span class="mf">0.0f</span><span class="p">,</span> <span class="n">zit</span><span class="p">;</span>
+  <span class="n">u32</span> <span class="n">iter</span> <span class="o">=</span> <span class="n">bailout</span><span class="p">;</span>
+  <span class="k">while</span><span class="p">(</span><span class="o">--</span><span class="n">iter</span> <span class="o">&amp;&amp;</span> <span class="n">zr2</span> <span class="o">+</span> <span class="n">zi2</span> <span class="o">&lt;</span> <span class="mf">4.0f</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">zit</span> <span class="o">=</span> <span class="n">zr</span> <span class="o">*</span> <span class="n">zi</span><span class="p">;</span>
+    <span class="n">zi</span> <span class="o">=</span> <span class="n">zit</span> <span class="o">+</span> <span class="n">zit</span> <span class="o">+</span> <span class="n">ci</span><span class="p">;</span>
+    <span class="n">zr</span> <span class="o">=</span> <span class="p">(</span><span class="n">zr2</span> <span class="o">-</span> <span class="n">zi2</span><span class="p">)</span> <span class="o">+</span> <span class="n">cr</span><span class="p">;</span>
+    <span class="n">zr2</span> <span class="o">=</span> <span class="n">zr</span> <span class="o">*</span> <span class="n">zr</span><span class="p">;</span>
+    <span class="n">zi2</span> <span class="o">=</span> <span class="n">zi</span> <span class="o">*</span> <span class="n">zi</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="n">iter</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">iter</span> <span class="o">=</span> <span class="n">bailout</span> <span class="o">-</span> <span class="n">iter</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">out</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">w</span><span class="p">]</span> <span class="o">=</span> <span class="n">iter</span> <span class="o">*</span> <span class="mf">5.0f</span><span class="p">;</span>
+<span class="p">}</span>
+
+
+<span class="c1">// Translate (center + zoom) to (upper left + lower right)</span>
+<span class="kt">void</span> <span class="nf">GetTranslatedCoordinates</span><span class="p">(</span><span class="kt">float</span><span class="o">*</span> <span class="n">cr1</span><span class="p">,</span> <span class="kt">float</span><span class="o">*</span> <span class="n">cr2</span><span class="p">,</span> <span class="kt">float</span><span class="o">*</span> <span class="n">ci1</span><span class="p">,</span> <span class="kt">float</span><span class="o">*</span> <span class="n">ci2</span><span class="p">,</span> <span class="kt">float</span> <span class="n">center_r</span><span class="p">,</span> <span class="kt">float</span> <span class="n">center_i</span><span class="p">,</span> <span class="kt">float</span> <span class="n">zoom</span><span class="p">)</span> <span class="p">{</span>
+  <span class="o">*</span><span class="n">cr1</span> <span class="o">=</span> <span class="n">center_r</span> <span class="o">-</span> <span class="n">zoom</span><span class="p">;</span>
+  <span class="o">*</span><span class="n">cr2</span> <span class="o">=</span> <span class="n">center_r</span> <span class="o">+</span> <span class="n">zoom</span><span class="p">;</span>
+  <span class="kt">float</span> <span class="n">aspect_ratio</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">w</span> <span class="o">/</span> <span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">h</span><span class="p">;</span>
+  <span class="o">*</span><span class="n">ci1</span> <span class="o">=</span> <span class="n">center_i</span> <span class="o">-</span> <span class="p">(</span><span class="n">zoom</span> <span class="o">/</span> <span class="n">aspect_ratio</span><span class="p">);</span>
+  <span class="o">*</span><span class="n">ci2</span> <span class="o">=</span> <span class="n">center_i</span> <span class="o">+</span> <span class="p">(</span><span class="n">zoom</span> <span class="o">/</span> <span class="n">aspect_ratio</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+<span class="kt">void</span> <span class="nf">writePpm</span><span class="p">(</span><span class="kt">int</span><span class="o">*</span> <span class="n">mandel_bailouts</span><span class="p">)</span>
+<span class="p">{</span>
+  <span class="n">ofstream</span> <span class="n">ofs</span><span class="p">(</span><span class="s">&quot;mandelbrot.ppm&quot;</span><span class="p">,</span> <span class="n">ios</span><span class="o">::</span><span class="n">binary</span><span class="p">);</span>
+  <span class="n">ofs</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;P6&quot;</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">&lt;&lt;</span> <span class="n">w</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">h</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; &quot;</span> <span class="o">&lt;&lt;</span> <span class="mi">255</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">u32</span> <span class="n">y</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="n">h</span><span class="p">;</span> <span class="o">++</span><span class="n">y</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">u32</span> <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">w</span><span class="p">;</span> <span class="o">++</span><span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+      <span class="kt">int</span> <span class="n">v</span> <span class="o">=</span> <span class="n">mandel_bailouts</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">w</span><span class="p">)];</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">v</span> <span class="o">&gt;</span> <span class="mi">255</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="mi">255</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="n">u8</span> <span class="n">vb</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="n">u8</span><span class="o">&gt;</span><span class="p">(</span><span class="n">v</span><span class="p">);</span>
+      <span class="n">ofs</span><span class="p">.</span><span class="n">write</span><span class="p">((</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">vb</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">u8</span><span class="p">));</span>
+      <span class="n">ofs</span><span class="p">.</span><span class="n">write</span><span class="p">((</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">vb</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">u8</span><span class="p">));</span>
+      <span class="n">ofs</span><span class="p">.</span><span class="n">write</span><span class="p">((</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">vb</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">u8</span><span class="p">));</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+
+<span class="kt">int</span> <span class="nf">div_up</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">((</span><span class="n">a</span> <span class="o">%</span> <span class="n">b</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">?</span> <span class="p">(</span><span class="n">a</span> <span class="o">/</span> <span class="n">b</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">:</span> <span class="p">(</span><span class="n">a</span> <span class="o">/</span> <span class="n">b</span><span class="p">);</span>
+<span class="p">}</span>
+
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span>
+<span class="p">{</span>
+  <span class="kt">float</span> <span class="n">cr1</span><span class="p">,</span> <span class="n">cr2</span><span class="p">,</span> <span class="n">ci1</span><span class="p">,</span> <span class="n">ci2</span><span class="p">;</span>
+  <span class="kt">float</span> <span class="n">center_r</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5f</span><span class="p">,</span> <span class="n">center_i</span> <span class="o">=</span> <span class="mf">0.0f</span><span class="p">;</span>
+  <span class="kt">float</span> <span class="n">zoom</span> <span class="o">=</span> <span class="mf">1.5f</span><span class="p">;</span>
+  <span class="n">GetTranslatedCoordinates</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cr1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cr2</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ci1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ci2</span><span class="p">,</span> <span class="n">center_r</span><span class="p">,</span> <span class="n">center_i</span><span class="p">,</span> <span class="n">zoom</span><span class="p">);</span>
+
+  <span class="kt">int</span><span class="o">*</span> <span class="n">mandel_escape_times_d</span><span class="p">;</span>
+  <span class="n">check_cuda_call</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mandel_escape_times_d</span><span class="p">,</span> <span class="n">w</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)));</span>
+
+  <span class="n">dim3</span> <span class="n">threads_per_block</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">);</span> <span class="c1">// 16 * 16 = 256</span>
+  <span class="n">dim3</span> <span class="n">blocks</span><span class="p">(</span><span class="n">div_up</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">.</span><span class="n">x</span><span class="p">),</span> <span class="n">div_up</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="p">.</span><span class="n">y</span><span class="p">));</span>
+
+  <span class="n">EventTimer</span> <span class="n">timer</span><span class="p">;</span>
+  <span class="n">timer</span><span class="p">.</span><span class="n">start</span><span class="p">();</span>
+  <span class="n">MandelbrotKernel</span><span class="o">&lt;&lt;&lt;</span><span class="n">blocks</span><span class="p">,</span> <span class="n">threads_per_block</span><span class="o">&gt;&gt;&gt;</span><span class="p">(</span><span class="n">mandel_escape_times_d</span><span class="p">,</span> <span class="n">cr1</span><span class="p">,</span> <span class="n">cr2</span><span class="p">,</span> <span class="n">ci1</span><span class="p">,</span> <span class="n">ci2</span><span class="p">);</span>
+  <span class="n">timer</span><span class="p">.</span><span class="n">stop</span><span class="p">();</span>
+
+  <span class="c1">// Check that kernel ran successfully.</span>
+  <span class="n">check_cuda_call</span><span class="p">(</span><span class="n">cudaDeviceSynchronize</span><span class="p">());</span>
+  <span class="n">check_cuda_call</span><span class="p">(</span><span class="n">cudaPeekAtLastError</span><span class="p">());</span>
+
+  <span class="n">printf</span><span class="p">(</span><span class="s">&quot;Elapsed time: %fms</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">timer</span><span class="p">.</span><span class="n">elapsed</span><span class="p">());</span>
+
+  <span class="kt">int</span><span class="o">*</span> <span class="n">mandel_escape_times_h</span><span class="p">;</span>
+  <span class="n">check_cuda_call</span><span class="p">(</span><span class="n">cudaMallocHost</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mandel_escape_times_h</span><span class="p">,</span> <span class="n">w</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)));</span>
+  <span class="n">check_cuda_call</span><span class="p">(</span><span class="n">cudaMemcpy</span><span class="p">(</span><span class="n">mandel_escape_times_h</span><span class="p">,</span> <span class="n">mandel_escape_times_d</span><span class="p">,</span> <span class="n">w</span> <span class="o">*</span> <span class="n">h</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">),</span> <span class="n">cudaMemcpyDeviceToHost</span><span class="p">));</span>
+  <span class="n">writePpm</span><span class="p">(</span><span class="n">mandel_escape_times_h</span><span class="p">);</span>
+
+  <span class="n">check_cuda_call</span><span class="p">(</span><span class="n">cudaFree</span><span class="p">(</span><span class="n">mandel_escape_times_d</span><span class="p">));</span>
+  <span class="n">check_cuda_call</span><span class="p">(</span><span class="n">cudaFreeHost</span><span class="p">(</span><span class="n">mandel_escape_times_h</span><span class="p">));</span>
+
+  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../index_gui.html" title="GUI"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../collatz/index.html" title="CUDA Collatz"
+             >previous</a> |</li>
+        <li><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li><a href="../../index_cuda.html" >CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

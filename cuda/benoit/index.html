@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CUDA Benoit &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="CUDA" href="../../index_cuda.html" />
+    <link rel="next" title="CUDA Collatz" href="../collatz/index.html" />
+    <link rel="prev" title="CUDA" href="../../index_cuda.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../collatz/index.html" title="CUDA Collatz"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../../index_cuda.html" title="CUDA"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cuda.html" accesskey="U">CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CUDA Benoit</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li><a class="reference internal" href="#benoit-player">Benoit Player</a></li>
+<li><a class="reference internal" href="#benoit-editor">Benoit Editor</a><ul>
+<li><a class="reference internal" href="#how-to-use-the-editor">How to use the editor</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation">Implementation</a><ul>
+<li><a class="reference internal" href="#strategy">Strategy</a></li>
+<li><a class="reference internal" href="#what-is-a-log-scale-map">What is a log scale map?</a></li>
+<li><a class="reference internal" href="#configuring-the-player">Configuring the player</a><ul>
+<li><a class="reference internal" href="#settings">Settings</a></li>
+<li><a class="reference internal" href="#interaction-between-parameters">Interaction between parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation-notes-for-the-player">Implementation notes for the player</a><ul>
+<li><a class="reference internal" href="#performance">Performance</a></li>
+<li><a class="reference internal" href="#known-issues">Known issues</a><ul>
+<li><a class="reference internal" href="#moire-pattern">Moiré pattern</a></li>
+<li><a class="reference internal" href="#cuda-opengl-interoperability-performance">CUDA / OpenGL interoperability performance</a></li>
+<li><a class="reference internal" href="#track-rendering">Track rendering</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation-notes-for-the-editor">Implementation notes for the editor</a><ul>
+<li><a class="reference internal" href="#id1">Performance</a><ul>
+<li><a class="reference internal" href="#benchmark">Benchmark</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#id2">Known issues</a><ul>
+<li><a class="reference internal" href="#saving-images">Saving images</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#misc">Misc</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#todo">TODO</a></li>
+<li><a class="reference internal" href="#image-credit">Image credit</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+      <hr><ul><li class="dl_l1">Download</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l1_os">Windows 64<br><a href="/static/benoit_exe.7z">benoit_exe.7z</a></li>
+<li class="dl_l1_os">Source<br><a href="/static/benoit_src.7z">benoit_src.7z</a></li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">CUDA</li>
+<li class="dl_l2">OpenGL</li>
+<li class="dl_l2">OpenMP</li>
+<li class="dl_l2">C++</li>
+<li class="dl_l2">Boost</li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">License</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">GPL</li>
+</ul>
+</ul>
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../../index_cuda.html"
+                        title="previous chapter">CUDA</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../collatz/index.html"
+                        title="next chapter">CUDA Collatz</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="cuda-benoit">
+<h1><a class="toc-backref" href="#id3">CUDA Benoit</a><a class="headerlink" href="#cuda-benoit" title="Permalink to this headline">¶</a></h1>
+<p>Realtime, high resolution, high iteration, supersampled, Mandelbrot fractal zoom
+using a novel calculation technique called a <a class="reference internal" href="#log-scale-map">log scale map</a>.</p>
+<p>Log scale maps enable realtime rendering of fractal zooms of higher quality than
+what is possible using the traditional calculation methods implemented by almost
+all fractal zoom generators (including GPU based ones).</p>
+<div class="contents topic" id="table-of-contents">
+<p class="topic-title first">Table of Contents</p>
+<ul class="simple">
+<li><a class="reference internal" href="#cuda-benoit" id="id3">CUDA Benoit</a><ul>
+<li><a class="reference internal" href="#usage" id="id4">Usage</a></li>
+<li><a class="reference internal" href="#requirements" id="id5">Requirements</a></li>
+<li><a class="reference internal" href="#implementation" id="id6">Implementation</a></li>
+<li><a class="reference internal" href="#implementation-notes-for-the-player" id="id7">Implementation notes for the player</a></li>
+<li><a class="reference internal" href="#implementation-notes-for-the-editor" id="id8">Implementation notes for the editor</a></li>
+<li><a class="reference internal" href="#todo" id="id9">TODO</a></li>
+<li><a class="reference internal" href="#image-credit" id="id10">Image credit</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="usage">
+<h2><a class="toc-backref" href="#id4">Usage</a><a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>This project consists of two apps, an editor and a player. Use the editor to
+create and edit fractal zoom specifications, called tracks, and then play them
+back in the player.</p>
+<p>The player renders the tracks in realtime, creating a continuously running
+fractal zooming show. It comes with a set of completed tracks (courtesy of yours
+truly), so the editor is only needed if there is a desire to create custom
+tracks (which I hope people will take the time to do).</p>
+</div>
+<div class="section" id="requirements">
+<h2><a class="toc-backref" href="#id5">Requirements</a><a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>A high end NVIDIA graphics card in the GTX 2xx or newer series.</li>
+<li>A 64 bit version of Windows.</li>
+</ul>
+<p>Lower end workstation or embedded graphics cards (such as the ones used in
+laptops) will probably not be able to run this app satisfactorily.</p>
+<div class="section" id="benoit-player">
+<h3>Benoit Player<a class="headerlink" href="#benoit-player" title="Permalink to this headline">¶</a></h3>
+<p>The player reads fractal zoom specifications from .benoit track files created
+in the editor and renders them as colorful fractal zooms in realtime.</p>
+<img alt="../../_images/player.jpg" src="../../_images/player.jpg" />
+<p>The player comes with a configuration file that has been optimized for an
+NVIDIA GTX 570 graphics card. If the target machine has this or a better card,
+tracks should play smoothly with good quality.</p>
+<p>To start the player with the default tracks and default configuration, download
+the executable, uncompress it to a convenient location, such as the Desktop, and
+double click the player.exe file. For the best results, enable triple buffering
+in the NVIDIA Control Panel.</p>
+<p>If you get error <em>CUDA driver version is insufficient for CUDA runtime
+version</em>, try updating your graphics card driver.</p>
+<p>If you get error <em>The application has failed to start because its side-by-side
+configuration is incorrect</em>, double-click the included vcredist_x64.exe file
+and follow the prompts. You only have to do this once.</p>
+<p>If you get error <em>Not a valid Win32 application</em>, note that this app currently
+supports only 64 bit Windows. If you get this error on a 64 bit version of
+Windows, please let me know.</p>
+<p>During playback, click to pause and right-click to view the log scale map. In
+the log scale map, all four sides of a fractal box are lined up on a single
+line.</p>
+<p>If the target machine has a high end graphics card that is less powerful than a
+GTX 570, it may still be able to run the player with satisfactory rendering
+quality and frame rate by modifying the player&#8217;s configuration file. See the
+<a class="reference internal" href="#configuration-file">configuration file</a> section for details on how to edit the file for optimal
+rendering quality on your machine.</p>
+<p>If the target machine has a graphics card that is significantly faster than the
+GTX 570, it may be desirable to modify the player configuration to take
+advantage of the extra processing power. Again, refer to the configuration file
+section.</p>
+<p>Note that the app can not take advantage of additional GPUs in a multi-GPU
+setup.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you create a new configuration file, please send it to me together
+with the output from the included deviceQueryDrv.exe for your card. I would
+like to create a system that automatically selects the optimal configuration
+file for a given graphics card.</p>
+</div>
+</div>
+<div class="section" id="benoit-editor">
+<h3>Benoit Editor<a class="headerlink" href="#benoit-editor" title="Permalink to this headline">¶</a></h3>
+<p>The editor lets you create fractal zoom specifications, .benoit track files, to
+be rendered in realtime in the player.</p>
+<p>A track contains a vanishing point to zoom towards, starting and ending zoom
+levels and key colors for creating palettes for frames in the zoom.</p>
+<div class="figure">
+<a class="reference internal image-reference" href="../../_images/editor.jpg"><img alt="../../_images/editor.jpg" src="../../_images/editor.jpg" style="width: 100%;" /></a>
+</div>
+<p>I created this tool because I feel that when coloring a fractal, the palette,
+in addition to providing colors, is an important tool for emphasizing and
+suppressing details in the fractal. So instead of just assigning palettes
+to fractals programmatically, I wanted a tool that would enable exact adjustment
+of the colors for given details in the fractals.</p>
+<p>The basic idea behind the editor is to enable coloring of an entire fractal zoom
+by only specifying a few key colors. <em>Spatial and temporal palettes</em> are just my
+Star Trekian names for two simple concepts. A spatial palette is a palette for a
+single frame in the series of frames that make up a zoom. A temporal palette is
+the palette for an entire zoom.</p>
+<p>A spatial palette is made up of one or more spatial keys. The spatial keys
+specify colors for specific escape times in a specific frame of the zoom. Colors
+for all the escape times in a frame are created automatically by interpolating
+between the given spatial keys.</p>
+<p>Spatial palettes themselves are keys in the temporal palette. Each spatial
+palette key specifies the palette in one frame in the zoom. The entire temporal
+palette is made by interpolating between the temporal palette keys.</p>
+<p>For instance, to create a track which starts out by using only gray tones and
+which, over time during the zoom, slowly shifts to using shades between red and
+green, create a temporal palette that contains two temporal keys. The first
+temporal key would be on the complete left (the location for the beginning of
+the zoom), and contain two spatial keys, one white and one black. The second
+temporal key would be on the complete right (the location for the end of the
+zoom), it would also contain two spatial keys, one red and one green.</p>
+<div class="section" id="how-to-use-the-editor">
+<h4>How to use the editor<a class="headerlink" href="#how-to-use-the-editor" title="Permalink to this headline">¶</a></h4>
+<ul>
+<li><p class="first">To zoom into the fractal, click in the image. To zoom out, right-click. Both
+when left- and right clicking, the clicked position is used as the center for
+the new image.</p>
+</li>
+<li><p class="first">To change the zoom level between the highest and lowest zoom level that you
+have been at in the track, drag the scrubber. The numbers on the left and
+right sides of the scrubber indicate the highest and lowest zoom levels.</p>
+</li>
+<li><p class="first">The lowest zoom level is the level to which you have clicked. Zooming out
+decreases the lowest zoom level.</p>
+</li>
+<li><p class="first">To create a spatial key, click in the open area above the spatial palette. The
+key is created at that location and with a color that is the same as the
+interpolated color is in that position. This enables creating spatial keys
+that do not modify the current palette until their colors are adjusted. If a
+duplicate of an existing key is desired instead, focus the existing key by
+clicking on it, then select Edit | Duplicate spatial key.</p>
+</li>
+<li><p class="first">To delete a spatial key, right click it. The last spatial key can not be
+deleted.</p>
+</li>
+<li><p class="first">To create a temporal key, click in the open area above the temporal palette.
+The new temporal key is a copy of the closest existing temporal key, so this
+is also how temporal keys are copied.</p>
+</li>
+<li><p class="first">To delete a temporal key, right click it. The last temporal key can not be
+deleted.</p>
+</li>
+<li><p class="first">To modify a temporal key, give it focus by clicking it. Focus is shown as a
+thin dotted line around the key. When focus is set to a temporal key, the
+zoom scrubber is moved to match that location. This is so that when the temporal
+key is edited, the changes are shown in the frame for which the temporal key
+applies.</p>
+</li>
+<li><p class="first">To modify the color of a spatial key, give it focus by clicking it. Then drag
+the RGB sliders.</p>
+</li>
+<li><p class="first">To modify the positions of spatial and temporal keys, drag them.</p>
+</li>
+<li><p class="first">Press the numeric keys 1 to 9 on the keyboard to assign a randomly generated
+spatial palette to the currently focused temporal key. The spatial palette
+will have the same number of spatial keys as the number that was pressed. More
+colors create a fractal that looks more &#8220;busy&#8221;. If the zoom scrubber is not at
+the location of the currently focused temporal key, it is moved there, and the
+fractal is updated accordingly. Usually, you will want to generate a palette
+for a new zoom level that you have arrived at by clicking in the fractal. To
+accomplish that, create a new temporal key or use an existing key and drag it
+all the way to the right (which is your current position if you have not moved
+the scrubber after right- or left clicking in the fractal), then press a key
+between 1 and 9.</p>
+<p>This function positions the spatial keys to evenly divide the colors between
+the calculated escape times, so it works best after the fractal has been fully
+rendered.</p>
+</li>
+<li><p class="first">Setting the calculation type in the Calculation menu and supersampling in the
+Supersample menu only affects how the fractal is calculated and rendered in
+the editor. It has no effect in the player.</p>
+</li>
+<li><p class="first">A higher bailout value enhances detail in the fractal. However, a higher
+bailout values also increases the fractal calculation time and makes it less
+likely that the player can rendered the track in realtime.</p>
+<p>All tracks that are to be played at the same time must use the same bailout
+value. If the bailout values do not match between tracks in a set, the player
+will select the lowest value and use it for all tracks.</p>
+</li>
+<li><p class="first">The editor can be associated with .benoit files, so that tracks can be opened
+for editing by double clicking them in Explorer. On Windows 7, right-click a
+.benoit file, select <em>Open With</em>, <em>Chose default program</em> and browse to the
+editor.exe file.</p>
+</li>
+</ul>
+</div>
+<div class="section" id="example">
+<h4>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h4>
+<p>The easiest way to create a track consists of these steps:</p>
+<ol class="arabic simple">
+<li>Select File | New.</li>
+<li>Click in the fractal image to zoom. Keep clicking on interesting looking
+details until the resolution becomes bad. This takes around 20 clicks. If
+necessary, right click to back up. During this part, drag the black and white
+spatial keys if necessary to see details in the images.</li>
+<li>Drag the temporal key to the middle.</li>
+<li>Wait for the fractal to render for this position. Then press numeric keys
+between 2 and 9 on the keyboard until an interesting looking combination of
+colors appear.</li>
+<li>Drag the spatial keys to emphasize the details that you want to show and
+to suppress the details you want to hide.</li>
+<li>Create a copy of the temporal key by clicking next to it. Drag the new key
+most of the way to the left. Wait for the fractal to render.</li>
+<li>Drag the spatial keys to emphasize the details in this location. It is
+best to keep the relative positions of the keys the same, so that the
+colors are not swapping places during playback of the track.</li>
+<li>Create another copy of the center temporal key by clicking next to it. Drag
+this key most of the way to the right. Again, drag the keys to emphasize
+the details.</li>
+<li>Drag the scrubber to check what the fractal will look like in the
+interpolated areas. Modify existing temporal keys or create new ones if
+necessary.</li>
+<li>Save the track in the player&#8217;s tracks folder.</li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If you create new tracks, I would like to see them. I would
+also be interested in including the best ones with the player. If you do
+submit tracks, please include a note to the effect that the tracks are
+licensed under GPL and let me know which name and/or email address to credit
+the track to.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="implementation">
+<h2><a class="toc-backref" href="#id6">Implementation</a><a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="strategy">
+<h3>Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Use a log scale map calculated in realtime.</li>
+<li>Do calculations with CUDA and rendering with OpenGL.</li>
+<li>Use CUDA to OpenGL interoperability to avoid transferring buffers between host
+and device.</li>
+</ul>
+</div>
+<div class="section" id="what-is-a-log-scale-map">
+<span id="log-scale-map"></span><h3>What is a log scale map?<a class="headerlink" href="#what-is-a-log-scale-map" title="Permalink to this headline">¶</a></h3>
+<div class="right-flow container">
+<img alt="../../_images/log_map.jpg" class="align-left" src="../../_images/log_map.jpg" />
+<p>This is a photo taken on a pier. Imagine that the pier was infinitely long.
+The point into which the walkway would seem to disappear in the distance is
+called the vanishing point.</p>
+<p>The lamp posts are spaced evenly along the pier but as they get closer to the
+vanishing point, the number of pixels between each lamp post becomes lower.
+The number of pixels between each lamp post is a logarithmic function of how
+close to the vanishing point the lamp posts are.</p>
+<p>To create an illusion of traveling towards the vanishing point in this image,
+progressively smaller sections of the image can be enlarged. However, because
+the resolution is the same across the entire image, the resolution will be
+reduced as the process is repeated, creating an image that is progressively
+more blurred.</p>
+<p>If the lowered resolution is compensated for by distorting the image in such a
+way that the same number of pixels is stored between each lamp post regardless
+of how close the lamp post is to the vanishing point, a log scale map has been
+created. In other words, a log scale map is simply an image in which the
+resolution increases the closer the pixels are to the vanishing point.</p>
+<p>With this log scale map, progressively smaller sections of the image can be
+enlarged around the vanishing point without the resolution becoming lower.</p>
+<p>Translating this to the problem at hand, creating a realtime fractal zoom, the
+point towards which the zoom progresses becomes the vanishing point. It is in
+the exact center of the screen. As progressively smaller sections of the
+fractal image are rendered, new fractal image data is calculated for a portion
+of the fractal that is <em>inside</em> the vanishing point, where it can not yet be
+seen. However, the content is added with a resolution that is sufficient to
+display it at a good resolution even when it is displayed at the outer edges of
+the screen. In essence, the fractal data is reused at many different scales.</p>
+<p>By using this technique, the problem of creating a realtime fractal zoom is
+shifted from being an issue of calculating fractal escape times fast enough,
+towards being more of a pixel manipulation issue, at which the graphics card
+happens to excel.</p>
+<p>There is also an interesting synergy between the way this technique causes the
+fractal to be rendered and the way the human eye and brain works. Since the
+same fractal data is used at many different scales, the display resolution of
+the fractal data is higher the closer it is to the vanishing point in the
+center of the screen. When zooming into the fractal, the eyes and attention of
+the viewer are also naturally drawn towards the vanishing point, where new
+fractal detail emerges. The combined effect is that the imagery shows with the
+highest resolution where it gets the most attention. In addition, as fractal
+details become larger and start losing resolution, they move towards the outer
+edges of the screen and in the process, both move into the peripheral vision
+of the observer and pick up apparent speed &#8211; both factors that help hide the
+fact that the resolution is becoming lower. The end result is that the fractal
+can be calculated in such a way that it provides fairly low detail towards the
+edges of the screen without the effect being readily noticeable by the viewer.</p>
+<p>The main limitation of this technique is that the zoom can&#8217;t change directions
+without creating an entirely new log scale map.</p>
+</div>
+</div>
+<div class="section" id="configuring-the-player">
+<span id="configuration-file"></span><h3>Configuring the player<a class="headerlink" href="#configuring-the-player" title="Permalink to this headline">¶</a></h3>
+<p>The player has a number of configuration settings, stored in the <strong>player.cfg</strong>
+file. The goal is to set these in such a way that the highest possible quality
+animation that your graphics card can generate is attained while maintaining the
+same framerate at which your monitor runs.</p>
+<p>Example: Most LCD monitors run at 60 Hz. That gives the graphics card 16.7ms to
+calculate one frame. The player should be configured in such a way that each
+frame is rendered with the highest possible quality without the calculation
+taking longer than 16.7ms. If the calculation exceeds that number and triple
+buffering is not enabled in the NVIDIA Control Panel, a frame will be missed,
+causing a &#8220;stutter&#8221; in the animation. This stuttering is very visible due to the
+even movement of the animation, and it significantly detracts from the quality
+of the final presentation. If triple buffering has been enabled, stuttering will
+only occur when a delay equivalent to the rendering time for one frame has been
+accumulated over time.</p>
+<p>The player can display timing information during playback to make configuration
+easier. See the <strong>timers</strong> setting below.</p>
+<p>A setting can be set to its default value by prepending it with a hash mark
+(&#8220;#&#8221;).</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Only a few basic checks are performed on the parameters. In
+particular, it is not checked if the provided values are valid and/or will
+work together.</p>
+</div>
+<div class="section" id="settings">
+<h4>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h4>
+<p><strong>timers</strong>: Show timers for the various CUDA kernels that perform the
+calculations. The timers are rendered as horizontal bars. A red notch indicates
+the time available to calculate and render a single frame. Black marks indicate
+lowest, average and highest values for each timer.</p>
+<p>It takes some time to render the timers themselves and by design, this rendering
+time is not included in the timers. This is so that the parameters can be fine
+tuned as if the timers were not being displayed (since the timers will not be
+displayed during regular playback). A result of this is that while the timers
+are being displayed, the player may be missing frames (causing stuttering) while
+still showing a <em>total</em> timer that is below the time limit designated by the red
+notch. In that case, the stuttering should go away when the timers are turned
+off for regular playback.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">timers</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># off (for regular playback)</span>
+<span class="n">timers</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># on (for configuring the player)</span>
+</pre></div>
+</div>
+<p><strong>device</strong>: The CUDA capable graphics card to use. If not specified or set to
+-1, the fastest card is automatically selected. &#8220;0&#8221; is the first card, &#8220;1&#8221; the
+second and so on.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">device</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="c1"># automatically select the fastest CUDA device</span>
+</pre></div>
+</div>
+<p><strong>vsync</strong>: Synchronize drawing with the monitor refresh. Turning this on causes
+the track to run at an even pace and removes tearing. Tearing shows as
+horizontal discontinuities in the image, where two parts of the image don&#8217;t
+quite match up.</p>
+<p>When vsync is on, this app can benefit significantly from triple buffering. If
+there was a standard way to request triple buffering, this app would use that
+but, unfortunately, there isn&#8217;t. To get triple buffering, enable it in the
+NVIDIA Control Panel. When enabled there, any OpenGL app that requests double
+buffering automatically gets triple buffering.</p>
+<p>The advantage of triple buffering is that the calculations never have to wait.
+Say the app is able to calculate frames fast enough to render at 59 FPS and the
+monitor runs at 60 FPS. With double buffering, the actual frame rate will be 30
+FPS. With triple buffering, the actual frame rate will be 59 FPS.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">vsync</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># on (highly recommended)</span>
+<span class="n">vsync</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># off</span>
+</pre></div>
+</div>
+<p><strong>vsync interval</strong>: Configure the frame rate to be a fraction of the monitor&#8217;s
+refresh rate. This sets the frame rate to M/N where M is the monitor&#8217;s refresh
+rate and N is the number set in this configuration setting. For instance, with a
+monitor running at 60FPS, setting this number to 3 causes a frame rate of
+60/3FPS = 20FPS. The purpose of this setting is to enable rendering of tracks
+that are more complex (higher bailout value, higher supersampling values, etc)
+than the graphics card can handle at full frame rate, by reducing the frame
+rate.</p>
+<p>Note: Graphics driver issues may cause this parameter to cause stuttering even
+when there are no missed frames (when set to a value other than 1).</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">vsync_interval</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p id="fullscreen"><strong>fullscreen</strong>: When turned on, the entire screen is used. If the <a class="reference internal" href="#screen-width-and-height">screen width
+and height</a> is not set to match the physical resolution of the screen, the
+track is stretched or compressed to match the screen.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">fullscreen</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># fill the screen with the track (recommended)</span>
+<span class="n">fullscreen</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># show in window</span>
+</pre></div>
+</div>
+<p id="screen-width-and-height"><strong>screen width and height</strong>: Sets the display resolution of the track. It is
+recommended that these be set to match the physical resolution of the screen.
+Any resolution that is supported by the graphics card and monitor can be
+specified.</p>
+<p>These settings can be used for playing back tracks in full screen with cards
+that would otherwise not be able to play them. For instance, if the screen
+resolution is 1920x1080, the workload can be reduced to a quarter by setting a
+resolution of 960x540. Of course, the result is a blurry image. It may be
+preferable to show the player in a window instead, by turning off the
+<a class="reference internal" href="#fullscreen">fullscreen</a> option.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># 1920x1080 (16:9)</span>
+<span class="n">screen_w</span> <span class="o">=</span> <span class="mi">1920</span>
+<span class="n">screen_h</span> <span class="o">=</span> <span class="mi">1080</span>
+</pre></div>
+</div>
+<p><strong>zoom step</strong>: Sets the difference in zoom level between each frame in the
+animation and thus the speed at which one is zooming into the fractal while the
+track is being rendered.</p>
+<p>When a fractal is rendered in the traditional way, rendering speed and rendering
+resolution are closely related. The higher the resolution, the longer the
+rendering takes. When a fractal is rendered based on a log scale map, this speed
+vs. resolution trade-off is still present but exposed in a different way.
+Rendering speed becomes equivalent to rate of zoom. A higher rate of zoom then
+causes reduced resolution. However, the reduction in resolution is not uniform
+over the entire screen. Instead, the resolution is reduced along imaginary lines
+drawn from the center of the screen and towards its edges. A high zoom speed
+will cause low resolution that is most apparent towards the outer edges of the
+screen.</p>
+<p>Since a track specifies a lowest zoom, this setting affects how long it takes
+to play back a track. A slow zoom will cause the track to take longer to play
+back (which also means that more frames are rendered for each track).</p>
+<p>Other steps can be specified &#8211; they are not limited to the provided
+examples. However, hardware limitations do impose boundaries on these values.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">zoom_step</span> <span class="o">=</span> <span class="mf">1.001</span>   <span class="c1"># very slow</span>
+<span class="n">zoom_step</span> <span class="o">=</span> <span class="mf">1.0025</span>  <span class="c1"># slow</span>
+<span class="n">zoom_step</span> <span class="o">=</span> <span class="mf">1.0075</span>  <span class="c1"># normal</span>
+<span class="n">zoom_step</span> <span class="o">=</span> <span class="mf">1.01</span>    <span class="c1"># fast</span>
+<span class="n">zoom_step</span> <span class="o">=</span> <span class="mf">1.1</span>     <span class="c1"># warp 10</span>
+</pre></div>
+</div>
+<p><strong>transform_ss_x and transform_ss_y</strong>: Specify supersampling anti-aliasing
+(SSAA) parameters for the log scale transform. If these are set to values higher
+than 1, each pixel that is drawn on screen becomes the average of a higher
+number of actually calculated pixels. To get the number of calculated pixels per
+displayed pixel, multiply the two transform_ss numbers. For instance, setting
+both values to 3 gives 9xSSAA.</p>
+<p>3x3 gives significantly better quality than 2x2. It seems like the two odd
+numbers help reduce moire patterns created in the log scale transform.</p>
+<p>Specify, together with the display resolution, how many fractal values that are
+calculated per frame.</p>
+<p>Recommended (if your graphics card can handle it): 3x3</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">transform_ss_x</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">transform_ss_y</span> <span class="o">=</span> <span class="mi">3</span>
+</pre></div>
+</div>
+<p><strong>fractal_box_ss</strong>: Specify supersampling anti-aliasing (SSAA) parameters for
+the fractal boxes. This parameter specifies supersampling performed on the
+fractal escape times. Setting this to a value higher than 1 causes multiple
+escape times to be calculated and the values stored in the the fractal boxes
+become averages of these values. See the description for <strong>boxes per frame</strong> for
+more information on this parameter.</p>
+<p>The cost of increasing this parameter may not be linear. For instance, with a
+screen size of 1920x1080, the size of a fractal box is 2 * 1920 + 2 * 1080 =
+6000 escape times. This again causes 6000 threads to be launched on the GPU. A
+GTX 570 has 480 cores, which gives 12.5 threads per core. This is not enough to
+hide computational latency, even when the cores are running double precision
+calculations (see the <a class="reference internal" href="#single-precision">single precision</a> setting). The result is that it
+may be possible to increase this value without any apparent cost. Unfortunately,
+the improvement in rendering quality is also fairly marginal.</p>
+<p>In general, if it is found that fractal_box_ss does increase kernel time, it is
+better to add <a class="reference internal" href="#boxes-per-frame">boxes per frame</a> than extra fractal box supersampling.
+The two options increase the number of required calculations in the same way.
+For instance, increasing fractal_box_ss from 1 to 2 doubles the number of
+Mandelbrot escape times that must be calculated, and so does increasing boxes
+per frame from 1 to 2.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">fractal_box_ss</span> <span class="o">=</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<p id="boxes-per-frame"><strong>boxes per frame</strong>: The number of fractal boxes to calculate per frame.
+Primarily affects the apparent display resolution at the edges of the screen.
+When this number is increased above 1, the zooming speed is adjusted
+automatically to compensate. Recommended: As many as your graphics card can
+handle.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">boxes_per_frame</span> <span class="o">=</span> <span class="mi">3</span>
+</pre></div>
+</div>
+<p><strong>bailout</strong>: A higher bailout value enhances detail in the fractal. However, a
+higher bailout values also increases the fractal calculation time and makes it
+less likely that the track can be rendered in realtime.</p>
+<p>Setting this value overrides the bailout value that is embedded in the track
+itself and which was set by the person who created the track. Overriding the
+bailout value is not recommended because it causes a shift in the color ranges
+that will usually cause the details that the palette was designed to expose to
+no longer appear.</p>
+<p>The main use for this parameter is to specify a bailout value that is lower
+than the ones recorded in the tracks if your graphics card is not fast enough
+to render the tracks with their original bailout values.</p>
+<p>Normal range: 100 - 10000.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c1"># default: commented out (use the bailout values stored in the tracks)</span>
+<span class="c1"># bailout = 2000</span>
+</pre></div>
+</div>
+<p><strong>gray-scale</strong>: When turned on, the temporal palette in a track is ignored and
+the track is rendered with a gray-scale palette.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">grayscale</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># off (recommended)</span>
+<span class="n">grayscale</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># render tracks with gray-scale palette.</span>
+</pre></div>
+</div>
+<p id="single-precision"><strong>single precision</strong>: Calculate Mandelbrot fractal with single precision only.
+This will reduce the &#8220;depth&#8221; to which a track can zoom to slightly less than
+half of that available when using the default double precision. The zoom depths
+of tracks are automatically adjusted to compensate.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">single_precision</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># off (recommended)</span>
+<span class="n">single_precision</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># on</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="interaction-between-parameters">
+<h4>Interaction between parameters<a class="headerlink" href="#interaction-between-parameters" title="Permalink to this headline">¶</a></h4>
+<p>The following formulas show how the configuration parameters interact to cause
+the given workload performed by the GPU.</p>
+<p>Mandelbrot escape values calculated per frame:</p>
+<div class="highlight-python"><div class="highlight"><pre>(2 * screen_w * transform_ss_x + 2 * screen_h * transform_ss_y) *
+boxes_per_frame * fractal_box_ss
+</pre></div>
+</div>
+<p>Log scale transformations calculated per frame:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">screen_w</span> <span class="o">*</span> <span class="n">transform_ss_x</span> <span class="o">*</span> <span class="n">screen_h</span> <span class="o">*</span> <span class="n">transform_ss_y</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="implementation-notes-for-the-player">
+<h2><a class="toc-backref" href="#id7">Implementation notes for the player</a><a class="headerlink" href="#implementation-notes-for-the-player" title="Permalink to this headline">¶</a></h2>
+<p>The source code for the player is ~2000 lines of well documented C++ and CUDA C.
+An effort has been made to make the code readable. I am happy to answer any
+questions about the code.</p>
+<div class="section" id="performance">
+<h3>Performance<a class="headerlink" href="#performance" title="Permalink to this headline">¶</a></h3>
+<p>This figure shows kernel execution times in microseconds for two frames rendered
+in the player with 1920x1080 display resolution, 9xSSAA (supersampling), bailout
+2000, 3 fractal boxes per frame and escape times calculated with double
+precision. As can be observed, the transform takes ~8000us, which is half of the
+available time when rendering at 60 FPS. Each of the fractal boxes take ~1400us,
+4200us total. Leaving around 4400us for the other kernels, overhead and safety
+margin, to meet the 60 FPS deadline.</p>
+<div class="figure">
+<a class="reference internal image-reference" href="../../_images/player_plot_small.png"><img alt="../../_images/player_plot_small.png" src="../../_images/player_plot_small.png" style="width: 100%;" /></a>
+</div>
+<p>The two main tasks performed by the player, Mandelbrot escape time calculations
+and log scale transforms are both tasks to which the graphics card is ideally
+suited. Both consist of large blocks of calculations that are completely
+independent of each other and which access memory consecutively. Also, there is
+no need for further processing of the data by the CPU so CUDA to OpenGL interop
+is used to display the rendered data without it leaving the graphics card.</p>
+<p>Performance is good on the GTX 570. In the log scale transform kernel,
+instruction throughput is 1.6 instructions per clock out of a possible 2.0 (82%)
+and active warps is 41 of 48 (85%). One of of the instructions in the kernel is
+a log(), traditionally a very slow instruction. Though, even though the card is
+running the kernel at a rate that is close to theoretical maximum, there is
+performance to be gained by reducing the number of operations in the kernel in
+the following ways:</p>
+<ul class="simple">
+<li>Factor the 4-way section selection code out of the transform kernel and, on
+Fermi (GTX 4xx), run 4 kernels at the same time by using the new ability to
+keep multiple kernels in flight at the same time.</li>
+<li>Thread counts are low in the escape time calculations. When calculating
+multiple boxes per frame or supersampling escape times, those kernels could be
+run concurrently on Fermi, which should allow better device utilization.</li>
+<li>The supersampling used in the log scale transform is implemented in a
+simplistic way. The transform kernel writes unreduced data out to global
+memory and a second kernel reads that data in, reduces it and writes it back
+out. This should be combined to a single kernel that performs the reduction
+using shared memory. Also, the kernel that reduces the data uses one thread
+per reduced value instead of one thread per unreduced value.</li>
+</ul>
+</div>
+<div class="section" id="known-issues">
+<h3>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="moire-pattern">
+<h4>Moiré pattern<a class="headerlink" href="#moire-pattern" title="Permalink to this headline">¶</a></h4>
+<p>The main factor that reduces rendering quality in the player is a Moiré pattern
+that is visible when rendering certain combinations of fractal data and
+palettes. The pattern is created in the log scale transform. Using supersampling
+in the transform (an option that is available in the player and enabled by
+default) helps but does not completely remove the Moiré pattern. The app uses
+linear interpolation when sampling from the fractal box buffer, where the base
+data for the log scale transform resides. I am puzzled as to why this does not
+remove the Moiré pattern. I don&#8217;t yet know if the issue is inherent to the
+mathematics used in the transform or if it&#8217;s caused by a bug or a programming
+error, such as a misunderstanding on my part on how the pixel data should be
+processed and/or rendered. Any insight that anyone can offer on this would be
+much appreciated.</p>
+<p>Even when the Moiré pattern is not visible, it can produce areas that radiate
+out from the center of image in which pixels seem to flicker.</p>
+<p>By filling the fractal box buffer with sample data, alternating black and white
+pixels, the Moiré pattern is fully exposed, causing a display as follows. When
+rendering a regular track, the Moiré pattern appears &#8220;blended in&#8221; with the
+fractal image when it is visible.</p>
+<p>As can be seen in the image, when the Moiré pattern is visible, it is most
+apparent in areas radiating out from the center in 90 and 45 degree angles.</p>
+<div class="figure">
+<a class="reference internal image-reference" href="../../_images/moire_small.png"><img alt="../../_images/moire_small.png" src="../../_images/moire_small.png" style="width: 100%;" /></a>
+</div>
+</div>
+<div class="section" id="cuda-opengl-interoperability-performance">
+<h4>CUDA / OpenGL interoperability performance<a class="headerlink" href="#cuda-opengl-interoperability-performance" title="Permalink to this headline">¶</a></h4>
+<p>This app uses the CUDA / OpenGL interoperability functionality that was
+introduced in CUDA 3.0. I have found that when there are two GPUs installed in
+the machine, the speed of the interoperability falls dramatically, presumably
+because the driver starts copying the objects that are shared between CUDA and
+OpenGL back and forth between host and device.</p>
+<p>This is true even if the second card does not have any monitors attached and is
+assigned to PhysX.</p>
+<p>Hopefully, this issue will be resolved in future drivers.</p>
+</div>
+<div class="section" id="track-rendering">
+<h4>Track rendering<a class="headerlink" href="#track-rendering" title="Permalink to this headline">¶</a></h4>
+<p>Care has been taken to make tracks render in the player just as they appear
+when they are being created in the editor. There are however a few factors
+which may alter the exact visual match between the two.</p>
+<ul class="simple">
+<li>In the editor, the fractal is rendered with uniform resolution across the
+entire image. In the player, the resolution diminishes towards the outer
+edges of the screen.</li>
+<li>During playback, palettes for different tracks fade into each other during
+the transitions between tracks to avoid abrupt color changes. This causes the
+colors to not appear correctly for a given track during its first and last
+part. Note that the when the player is first launched, the starting palette
+for the first track includes a fade in of the ending palette for the last
+track, just as if the player had cycled through all the tracks already.</li>
+<li>The full Mandelbrot set has a large area in the center where the escape times
+all go to the bailout value. To lessen the chance of missed frames when
+rendering the initial part of a track, the zoom level is automatically
+adjusted if the track starts by showing a big part of the full Mandelbrot set.</li>
+<li>If the single precision option is turned on, the final part of a track
+is not rendered if it requires double precision.</li>
+<li>If a track specifies an ending zoom level that can not be rendered with
+double precision floating point, that part is automatically skipped.</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="section" id="implementation-notes-for-the-editor">
+<h2><a class="toc-backref" href="#id8">Implementation notes for the editor</a><a class="headerlink" href="#implementation-notes-for-the-editor" title="Permalink to this headline">¶</a></h2>
+<p>The source code for the editor is ~4400 lines of fairly well documented C++. An
+effort has been made to make the code readable. I am happy to answer any
+questions about the code.</p>
+<div class="section" id="id1">
+<h3>Performance<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>Performance is not very important in the editor. It just needs to be sufficient
+to provide fairly painless editing of tracks. However, I took the opportunity
+to roll in a few different Mandelbrot calculation methods that I had available
+from earlier projects and the app displays the number of gigaflops
+attained while running the calculations, so that some benchmarking can be done.</p>
+<p>There is also the side effect that the computer on which tracks are created and
+edited does not have to be CUDA capable (as opposed to the computer on which the
+tracks are played).</p>
+<p>The Mandelbrot escape time calculation methods included are:</p>
+<p><strong>x86 32 bit float and x86 64/80 bit double</strong>: Straight forward implementation
+written in C++, templatized on the floating point type.</p>
+<p><strong>SSE2, 4x32 bit floats, C++ with intrinsics</strong>: This implementation was written
+by Bjørn Bæverfjord, <a class="reference external" href="http://www.sciencezero.org">www.sciencezero.org</a>. It
+calculates 4 escape times simultaneously using packed floats. It is implemented
+using SSE2 intrinsics in C++.</p>
+<p><strong>SSE2, 2x64 bit doubles, x64 assembly</strong>: This implementation calculates 2
+escape times simultaneously using packed doubles in SSE2. It is implemented in
+x64 assembly. It is part of an earlier project where I researched how to write
+x64 and integrate it with C++ in Visual C++. As part of that project, I also
+wrote a <a class="reference external" href="http://www.sciencezero.org/index.php?title=How_to_write_x64_assembly_functions_in_Visual_C%2B%2B">brief x64 assembly tutorial</a>.</p>
+<p><strong>CUDA 32 bit float and CUDA 64 bit float</strong>: Straight forward calculation
+written in CUDA C, templatized on the floating point type.</p>
+<p>The CPU implementations were all parallelized using OpenMP.</p>
+<p>An interesting observation that can be made from viewing the different
+implementations is the big difference in level of complexity between the CUDA
+and the SSE implementations. The SSE implementations had to be written in
+assembly (or by using assembly intrinsics). The fact that the number of
+iterations in the loop vary for each escape time calculation has to be handled
+manually by masking techniques. In addition, the loop must be bracketed by code
+that first packs the starting values into XMM registers and unpacks the results
+afterwards. In contrast, the CUDA implementation of the escape time calculation
+loop looks like the plain C++ implementation. In other words, not only does the
+CUDA implementation of the Mandelbrot escape time calculation run much
+faster (see <a class="reference internal" href="#benchmark">Benchmark</a>), it also saved a lot of developer time.</p>
+<div class="section" id="benchmark">
+<h4>Benchmark<a class="headerlink" href="#benchmark" title="Permalink to this headline">¶</a></h4>
+<p>Here is a benchmark performed on my computer, an 8 core Xeon E5504 &#8220;Gainestown&#8221;
+2.0GHz machine with a GTX 570 graphics card at 1.5GHz.</p>
+<p>Characteristic of the Mandelbrot escape time calculation: The calculation is
+always purely compute bound. The loop consists of 14 floating point operations,
+a branch and an integer subtraction and test for zero. In this test, the loop
+was run 10,000 times for approximately 24,000,000 values. There is almost no
+I/O. Input is 2 floating point values, output is one integer value.</p>
+<p>The editor was set up with 25xSSAA, bailout was set to 10,000 and the window
+was maximized. A zoom was then performed into the center of the Mandelbrot set,
+where all escape times hit the bailout value.</p>
+<div class="highlight-python"><div class="highlight"><pre>x86 double     13 gflops
+x86 float      14 gflops
+SSE2 double    22 gflops
+SSE2 float     56 gflops
+CUDA double   137 gflops
+CUDA float    528 gflops
+</pre></div>
+</div>
+<p>As mentioned earlier, the CPU implementations were parallelized using OpenMP, so
+the CPU implementations use all available cores. Calculations were verified to
+scale linearly with core count. This was expected as the calculations are
+compute bound and have no interdependencies.</p>
+<p>Observations:</p>
+<ul class="simple">
+<li>Single precision on GTX 570 at 1.5GHz is 9x faster than 8 Gainestown cores at
+2.0GHz. It would be 19x faster on a similar quad core machine.</li>
+<li>Similarly, double precision is 6x faster.</li>
+<li>The difference between single and double precision on CUDA is only 4x even
+though the Fermi GF110 chip on the GTX 570 card has been artificially limited
+to double precision floating point performance 1/8th that of single precision.
+This indicates that the single precision implementation can be improved.</li>
+<li>Also relevant is the performance difference between x86 float and CUDA float,
+where CUDA float is 38x faster (75x on a quad core machine). This comparison
+is relevant because it compares two implementations in which about the same
+amount of developer effort was put.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="id2">
+<h3>Known issues<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="saving-images">
+<h4>Saving images<a class="headerlink" href="#saving-images" title="Permalink to this headline">¶</a></h4>
+<p>Saving images is not supported. There are many, many, <em>many</em> apps out there that
+are far superior for generating static fractal images. However, a possible
+workaround is to configure the player for very high rendering quality (no longer
+realtime), and then use <em>print screen</em> to take a snapshot at the right moment.
+Another alternative is to save the track, open the .benoit file in a text
+editor, read out the center_r and center_i values, plug those into another app
+and use them for finding the area.</p>
+</div>
+</div>
+<div class="section" id="misc">
+<h3>Misc<a class="headerlink" href="#misc" title="Permalink to this headline">¶</a></h3>
+<ul>
+<li><p class="first">The track files (.benoit) are XML files. They can be opened and edited in a
+text editor.</p>
+</li>
+<li><p class="first">The basic formula for the log scale transform is:</p>
+<div class="math">
+<p><img src="../../_images/math/c198a6f553da9c33ec1dc7b5561cc8d73fad9c91.png" alt="samplepos = \frac{log(\frac{1}{zoomend})}{log(zoomstep)}"/></p>
+</div><p>Solving for zoomend:</p>
+<div class="math">
+<p><img src="../../_images/math/18f7678fd24920676097ce23f76e610e0d382ade.png" alt="zoomend = e^{- samplepos * log(zoomstep)}"/></p>
+</div></li>
+</ul>
+</div>
+</div>
+<div class="section" id="todo">
+<h2><a class="toc-backref" href="#id9">TODO</a><a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Automatically adjust the interpolated spatial palettes so that they slice in
+the same way as the keys.</li>
+<li>Store normalized escape times in the fractal boxes.</li>
+<li>Look at the &#8220;parallel reduction&#8221; and &#8220;threadFenceReduction&#8221; SDK examples for
+information on how to do the supersampling in a single kernel. Also read the
+whitepaper for reduction.</li>
+<li>It&#8217;s possible to minimize the difference in rendered result when bailout is
+forced to a lower value than what&#8217;s in the track by scaling the color range
+like it would be scaled for the original value. For bailout that is forced to
+a higher value, there are no colors, but the best option would probably be to
+just mirror back.</li>
+</ul>
+</div>
+<div class="section" id="image-credit">
+<h2><a class="toc-backref" href="#id10">Image credit</a><a class="headerlink" href="#image-credit" title="Permalink to this headline">¶</a></h2>
+<p>The image used in <a class="reference internal" href="#what-is-a-log-scale-map">What is a log scale map?</a> is part of photo called
+<em>Embarcadero Pier, San Francisco 2005</em>. It was taken by Chris Gulker.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../collatz/index.html" title="CUDA Collatz"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../../index_cuda.html" title="CUDA"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cuda.html" >CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

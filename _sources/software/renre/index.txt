@@ -1,0 +1,90 @@
+:download: Windows 32#RenRe32.7z|Windows 64#RenRe64.7z|Source#RenReSrc.7z
+
+:technologies: C++|Boost
+
+
+RenRe - Batch regex renaming of files and folders
+=========================================================
+
+Rename files and folders using regular expressions.
+
+
+Usage
+-----
+
+Use the *--folder* and *--rfolder* options to add folders to search for files
+and folders to rename. Use each option as many times as necessary to add
+different folder hierarchies. Use *--search* and *--replace* to specify a
+regular expressions and a format strings for renaming. Back references are
+allowed in the format strings.
+
+Regular expressions can be tricky. It's a good idea to always run the app first
+with *--dry-run* just to make sure it will do what you want.
+
+Uses the `Perl Regular Expression Syntax <http://www.boost.org/doc/libs/1_53_0/libs/regex/doc/html/boost_regex/syntax/perl_syntax.html>`_.
+
+.. warning::
+  When using multiple *--folder* and *--rfolder* switches, make sure that you
+  are not inadvertently adding the same files multiple times, for instance by
+  adding in a recursive directory and then a subdirectory of that directory. The
+  same file could get renamed multiple times, causing confusing results.
+
+If you get error *The application has failed to start because its side-by-side
+configuration is incorrect* or another error about missing DLLs or missing
+dependencies, download and run `vcredist_2010_64.exe
+<../_shared/vcredist_2010_64.exe>`_ or `vcredist_2010_32.exe
+<../_shared/vcredist_2010_32.exe>`_ (select the one that corresponds to the 32
+or 64 bit version of RenRe that you downloaded). You only have to do this once.
+
+If you get error *Not a valid Win32 application*, on a 32 bit version of
+Windows, make sure that you downloaded the 32 bit version of RenRe.
+
+
+Command line
+~~~~~~~~~~~~
+
+::
+
+  RenRe - Batch regex renaming of files and folders - dahlsys.com:
+    --help                    produce help message
+    -f [ --folder ] arg       add search folder
+    -r [ --rfolder ] arg      add recursive search folder
+    -s [ --search ] arg       search regex (required)
+    -e [ --replace ] arg      replace with (back references allowed) (required)
+    -i [ --filter ] arg (=.*) file/folder filter regex
+    -d [ --dry-run ]          don't rename anything -- just simulate
+    -v [ --verbose ]          display verbose messages
+    -c [ --case-sensitive ]   make regexes case sensitive
+    -z [ --files-only ]       only rename files
+    -x [ --folders-only ]     only rename folders
+    -q [ --query ]            ask for confirmation for each rename
+    -l [ --depth ] arg        limit depth of recursive search
+
+    The search and replace arguments can be given without using options, as long
+    as they are given in that order.
+
+
+Examples
+~~~~~~~~
+
+Rename all files and folders in the current folder to all UPPER CASE::
+
+  renre "(.*)" "\U\1"
+
+Rename all files and folders in the current folder to Title Case::
+
+  renre "(^.| .)" "\U\1"
+
+
+
+Implementation
+--------------
+
+Strategy
+~~~~~~~~
+
+* Use a depth-first recursive algorithm to process the folders and files.
+
+* First create a list of files to rename and then do all renaming in a separate
+  step to prevent issues that result from changing file and folder names while
+  traversing the folder structure.

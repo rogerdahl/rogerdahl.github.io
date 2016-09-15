@@ -1,0 +1,576 @@
+:download: Source#silly.tgz
+
+:technologies: CPython|Cython|PyPy|C|Java|C++|Boost|Go|PyOpenCL|OpenCL|CUDA
+
+
+``itoa`` and ``strlen`` performance
+===================================
+
+This is a small project to investigage the performance of a simple algorithm
+across a number of languages and implementations. Interpreted and compiled
+languages are tested as well as serial and parallel implementations.
+
+The algorithm converts a series of 32-bit integers to their ASCII decimal base
+number representations (``itoa``), counts the number of characters in each
+number (``strlen``), sums them up and returns the total.
+
+Counting the characters and returning the total ensures that the basic
+operations cannot be optimized out and allows correctness to be checked. The
+correct result is ``123106610``.
+
+Characteristics of the algorithm:
+
+- No floating point operations
+- Mostly 8-byte memory access
+- A large number of integer divide by 10 and modulus 10 operations
+
+Hardware:
+
+| CPU: Intel(R) Core(TM)2 Quad, Q6600  @ 2.40GHz
+| GPU: AMD Radeon R9 290 (Hawaii)
+
+
+Python
+~~~~~~
+
+CPython
+```````
+
+.. code-block:: none
+
+  l = 0
+  for i in range(0xffffff):
+    l += len('{}'.format(i))
+  print l
+
+.. code-block:: none
+
+  $ \time -f"%e" python silly.py
+
+.. code-block:: none
+
+  9.42s
+
+I think it's pretty remarkable that an interpreted language can do string
+formatting with integer conversion and count the characters of 16,777,215 values
+in 9.42 seconds.
+
+
+
+Cython
+``````
+
+Cython is a Python compiler.
+
+With no changes to the script:
+
+.. code-block:: none
+
+  $ sudo apt-get install cython
+  $ cp silly.py silly_cython.py
+  $ cython -o silly_cython.c silly_cython.py
+  $ gcc -o silly_cython.so -shared -fPIC -I/usr/include/python2.7 silly_cython.c -lpython2.7
+  $ \time -f"%e" python -c "import silly_cython"
+
+.. code-block:: none
+
+  10.16s
+
+No improvement. Let's try to add type annotations:
+
+.. code-block:: none
+
+  cdef int l
+  cdef int i
+  l = 0
+  for i in range(0xffffff):
+    l += len('{}'.format(i))
+  print l
+
+.. code-block:: none
+
+  $ mv silly_cython.py silly_cython.pyx
+  $ cython -o silly_cython.c silly_cython.pyx
+  $ gcc -o silly_cython.so -shared -fPIC -I/usr/include/python2.7 silly_cython.c -lpython2.7
+  $ \time -f"%e" python -c "import silly_cython"
+
+.. code-block:: none
+
+  5.20s
+
+A 1.8x speedup at the cost of some added complexity.
+
+
+PyPy
+````
+
+.. code-block:: none
+
+  $ sudo apt-get install pypy
+  $ \time -f"%e" pypy silly.py
+
+.. code-block:: none
+
+  2.88s
+
+Virtually the same speed as the plain C version. Wow.
+
+
+C
+~
+
+.. code-block:: none
+
+  #include <stdio.h>
+  #include <string.h>
+
+  void main() {
+      char s[16];
+      int l = 0;
+      for (int i = 0; i < 0xffffff; ++i) {
+        sprintf(s, "%d", i);
+        l += strlen(s);
+      }
+      printf("%d\n", l);
+  }
+
+.. code-block:: none
+
+  $ gcc -o silly_c -O3 -std=c99 silly_c.c
+  $ \time -f"%e" ./silly_c
+
+.. code-block:: none
+
+  2.66s
+
+3.54x of the plain Python version. 1.95x of the Cython version.
+
+
+Java
+~~~~
+
+.. code-block:: none
+
+  public class Silly {
+    private static int l = 0;
+    public static void main(String[] arg) {
+      for (int i = 0; i < 0xffffff; i++) {
+        l += String.format("%d", i).length();
+      }
+      System.out.printf("%d%n", l);
+    }
+  }
+
+.. code-block:: none
+
+  $ sudo apt-get install openjdk-7-jdk
+  $ javac Silly.java
+  $ \time -f"%e" java Silly
+
+.. code-block:: none
+
+  14.20s
+
+Slower than Python even though it's compiled.
+
+
+C++
+~~~
+
+std
+```
+
+.. code-block:: none
+
+  #include <iostream>
+  #include <string>
+  #include <sstream>
+
+  using namespace std;
+
+  int main(void) {
+    int l = 0;
+    for (int i = 0; i < 0xffffff; ++i) {
+      stringstream s;
+      s << i;
+      l += s.str().length();
+    }
+    cout << l << endl;
+    return 0;
+  }
+
+.. code-block:: none
+
+  $ g++ -O3 -o silly1_cpp silly.cpp
+  $ \time -f"%e" ./silly1_cpp
+
+.. code-block:: none
+
+  15.58s
+
+The std based implementation that seemed most natural to me is slower than Java.
+
+Moving the stringstream object creation outside the loop, and clearing it in the
+loop:
+
+.. code-block:: none
+
+  stringstream s;
+  for (int i = 0; i < 0xffffff; ++i) {
+    s.str("");
+    s << i;
+    f += s.str().length();
+  }
+
+.. code-block:: none
+
+  $ g++ -O3 -o silly2_cpp silly2.cpp
+  $ \time -f"%e" ./silly2_cpp
+
+.. code-block:: none
+
+  3.43s
+
+Approaching the C version. So instantiating a stringstream is very expensive.
+
+
+boost::format
+`````````````
+
+.. code-block:: none
+
+  #include <iostream>
+  #include <boost/format.hpp>
+
+  using namespace std;
+  using namespace boost;
+
+  int main(void) {
+    float f = 0.0f;
+    for (int i = 0; i < 0xffffff; ++i) {
+      f += str(format("%1%") % i).length();
+    }
+    cout << f << endl;
+    return 0;
+  }
+
+.. code-block:: none
+
+  $ g++ -O3 -o silly_boost silly_boost.cpp
+  $ \time -f"%e" ./silly_boost
+
+.. code-block:: none
+
+  18.47s
+
+``boost::format()`` is even more expensive than the ``std::stringstream``
+based version with instantiation in the inner loop.
+
+
+Go
+~~
+
+Plain serial
+````````````
+
+.. code-block:: none
+
+  package main
+
+  import "fmt"
+
+  func main() {
+    l := 0
+    for i := 0; i < 0xffffff; i++ {
+      l += len(fmt.Sprintf("%d", i))
+    }
+    fmt.Println(l)
+  }
+
+.. code-block:: none
+
+  $ \time -f"%e" go run silly.go
+
+.. code-block:: none
+
+  10.96s
+
+Somewhat slow, considering that it's a compiled language.
+
+
+Concurrent, with workers running in parallel
+````````````````````````````````````````````
+
+.. code-block:: none
+
+  package main
+
+  import (
+    "fmt"
+    "sync"
+    "runtime"
+  )
+
+  func main() {
+    cores := 4
+
+    runtime.GOMAXPROCS(cores)
+
+    in := make(chan int, 100)
+    out := make(chan int, 100)
+    wg := &sync.WaitGroup{}
+
+    for i := 0; i < cores; i++ {
+      wg.Add(1)
+      go worker(wg, in, out)
+    }
+
+    go monitor_workers(wg, out)
+    go gen(in)
+
+    s := 0
+    for i := range out {
+      s += i
+    }
+    fmt.Println(s)
+  }
+
+  func worker(wg *sync.WaitGroup, in <- chan int, out chan <- int) {
+    for i := range in {
+      out <- len(fmt.Sprintf("%d", i))
+    }
+    wg.Done()
+  }
+
+  func monitor_workers(wg *sync.WaitGroup, out chan int) {
+    wg.Wait()
+    close(out)
+  }
+
+  func gen(in chan int) {
+    for i := 0; i < 0xffffff; i++ {
+      in <- i
+    }
+    close(in)
+  }
+
+.. code-block:: none
+
+  $ \time -f"%e" go run silly2.go
+
+.. code-block:: none
+
+  26.19s
+
+Almost 3 times as slow as the plain serial version. Presumably, the work items
+are too small to weigh up for cross-process transfers for the in and out
+channels.
+
+
+PyOpenCL
+~~~~~~~~
+
+CPU
+```
+
+.. code-block:: none
+
+  #!/usr/bin/env python
+
+  import pyopencl as cl
+  import time
+  import ctypes
+  import struct
+
+  ctx = cl.create_some_context()
+  queue = cl.CommandQueue(ctx)
+  prg = cl.Program(ctx, """
+
+  #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+
+  typedef unsigned int u32;
+
+  u32 strlen(const char *str)
+  {
+    const char *s;
+    for (s = str; *s; ++s) {}
+    return(s - str);
+  }
+
+  void reverse(char s[])
+  {
+    u32 i, j;
+    char c;
+
+    for (i = 0, j = strlen(s)-1; i<j; i++, j--) {
+      c = s[i];
+      s[i] = s[j];
+      s[j] = c;
+    }
+  }
+
+  void itoa(char s[], u32 n)
+  {
+    u32 i = 0;
+    do {
+      s[i++] = n % 10 + '0';
+    } while ((n /= 10) > 0);
+    s[i] = 0;
+    reverse(s);
+  }
+
+  u32 length_of_number(u32 n)
+  {
+    char s[16];
+    itoa(s, n);
+    return strlen(s);
+  }
+
+  __kernel void sum(__global u32* global_sum)
+  {
+    u32 gid = get_global_id(0);
+    atomic_add(global_sum, length_of_number(gid));
+  }
+
+  """).build()
+
+  start_time = time.time()
+
+  # Create 32-bit destination buffer on device and initialize it to zero.
+  result_d = cl.Buffer(ctx, cl.mem_flags.WRITE_ONLY, 4)
+  cl.enqueue_fill_buffer(queue, result_d, ctypes.create_string_buffer(1), 0, 4, wait_for=True)
+
+  # Launch the kernel.
+  prg.sum(queue, (0xffffff, ), None, result_d)
+
+  # Create the host result buffer and copy the device result there.
+  result_h = ctypes.create_string_buffer(4)
+  cl.enqueue_copy(queue, result_h, result_d)
+
+  # Convert the host result buffer to a 32-bit unsigned int and print it.
+  print struct.unpack('I', result_h)[0]
+
+  print int((time.time() - start_time) * 1000), 'ms'
+
+An OpenCL solution causes a big jump in complexity, primarily because OpenCL
+does not include ``sprintf()`` or ``strlen()``. I copied an ``itoa()`` and
+``strlen()`` function from the web and implemented the function with those. This
+is cheating a bit since ``itoa()`` does not have to interpret a format string
+like ``sprintf()`` does. The implementation is naive in that it updates a single
+global value with an ``atomic_add()`` in each of the 16,777,215 work items. Each
+add causes a global memory round-trip for which the thread must wait, and uses
+up almost all the time in the algorithm.
+
+.. code-block:: none
+
+  $ \time -f"%e" ./silly_cl.py
+
+.. code-block:: none
+
+  1891 ms
+  6.79s
+
+There is a rather large overhead in creating the OpenCL context so, if that is
+included in the result, running this algorithm on the CPU is not much faster
+than the Python version. However, the context creation will typically be
+amortized over many kernel calls in the same app, so it can be disregarded, in
+which case the algorithm runs at 1.89s, faster than any of the serial solutions.
+
+
+GPU
+```
+
+The OpenCL program runs unmodified on GPUs.
+
+.. code-block:: none
+
+  $ \time -f"%e" ./silly_cl.py
+
+.. code-block:: none
+
+  31 ms
+  2.38s
+
+86x of the plain C version running on the CPU. An excellent result, especially
+considering that this is a bad implementation (based on ``atomic_add()``) on an
+algorithm that is a poor fit for GPUs, which are optimized for 32-bit floating
+point operations.
+
+
+Optimized GPU
+`````````````
+
+.. code-block:: none
+
+  #!/usr/bin/env python
+
+  import pyopencl as cl
+  import time
+  import ctypes
+  import struct
+
+  ctx = cl.create_some_context()
+  queue = cl.CommandQueue(ctx)
+  prg = cl.Program(ctx, """
+
+  #pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+
+  typedef unsigned int u32;
+
+  u32 length_of_number(u32 n)
+  {
+    u32 i = 0;
+    do {
+      ++i;
+    } while ((n /= 10) > 0);
+    return i;
+  }
+
+  __kernel void sum(__global u32* global_sum)
+  {
+    u32 gid = get_global_id(0);
+    atomic_add(global_sum, length_of_number(gid));
+  }
+
+  """).build()
+
+  start_time = time.time()
+
+  # Create 32-bit destination buffer on device and initialize it to zero.
+  result_d = cl.Buffer(ctx, cl.mem_flags.WRITE_ONLY, 4)
+  cl.enqueue_fill_buffer(queue, result_d, ctypes.create_string_buffer(1), 0, 4, wait_for=True)
+
+  # Launch the kernel.
+  prg.sum(queue, (0xffffff, ), None, result_d)
+
+  # Create the host result buffer and copy the device result there.
+  result_h = ctypes.create_string_buffer(4)
+  cl.enqueue_copy(queue, result_h, result_d)
+
+  # Convert the host result buffer to a 32-bit unsigned int and print it.
+  print struct.unpack('I', result_h)[0]
+
+  print int((time.time() - start_time) * 1000), 'ms'
+
+It is not necessary to store the digits and reverse them since the result is not
+printed. Instead, can just directly count the number of digits that would be
+stored. That allows the expensive modulus operation to be removed as well.
+
+.. code-block:: none
+
+  $ python silly_cl_opt.py
+
+.. code-block:: none
+
+  25 ms
+
+Even though most of the logic is removed, only went from 31ms to 25ms, showing
+that the algorithm is being held up by the ``atomic_add()``.
+
+<TODO> Use a reduction to sum up the values.
+
+
+CUDA
+~~~~
+
+<TODO>

@@ -1,0 +1,171 @@
+Maxwell vs. Kepler and Fermi CUDA benchmark
+===========================================
+
+A couple of quick benchmarks to see how NVIDIA's first Maxwell chip stacks up
+against earlier architectures.
+
+Note that I'm comparing apples and oranges -- high-end and mid-range Fermi and
+Kepler, 1st and 2nd generation and a budget Maxwell card.
+
+============== =============== =============== =============== ================== =================== 
+Chip name                GF100           GF110           GK106           GK110                  GM107
+============== =============== =============== =============== ================== ===================
+Product name   GeForce GTX 480 GeForce GTX 570 GeForce GTX 660 GeForce GTX 780 Ti  GeForce GTX 750 Ti
+Architecture     Fermi 1st gen   Fermi 2nd gen  Kepler 1st gen     Kepler 2nd gen     Maxwell 1st gen
+ALU clock            1,401 GHz       1.500 GHz       1.058 GHz          0.876 GHz           1.150 GHz
+Max FP32               1345 GF         1405 GF         1882 GF            5046 GF             1306 GF
+TDP                       250W            219W            140W               250W                 60W
+Transistors              3.20B           3.00B           2.54B              7.08B               1.87B
+Lithography               40nm            40nm            28nm               28nm                28nm
+Die size       529mm\ :sup:`2` 520mm\ :sup:`2` 221mm\ :sup:`2`    561mm\ :sup:`2`      148mm\ :sup:`2`
+Mem bus width              384             320             192                384                 128
+Mem bandwidth         177 GB/s        152 GB/s        144 GB/s           336 GB/s             86 GB/s
+Launch price              $499            $349            $229               $699                $149
+Released               2010-03         2010-12         2012-09            2013-11             2014-04
+============== =============== =============== =============== ================== ===================
+
+| GF: GigaFLOPS (Billion Floating Point Operations Per Second).
+
+
+Mandelbrot
+~~~~~~~~~~
+
+This test uses a purely compute bound algorithm, a Mandelbrot escape time
+calculation. The algorithm consists of a loop with 14 floating point operations,
+a branch and an integer subtraction and test for zero. The loop was run 10,000
+times in each of approximately 24,000,000 threads. There is almost no I/O. Input
+is 2 floating point values, output is one integer value.
+
+============== =============== ===============
+\                        GF110           GM107
+============== =============== ===============
+FP64                     137GF            37GF
+FP32                     528GF           479GF
+============== =============== ===============
+
+| FP32: Single Precision Floating Point
+| FP64: Double Precision Floating Point
+
+Observations
+------------
+
+* The budget Maxwell chip almost matches the high end Fermi chip on FP32
+  performance while using only slightly more than a quarter of the power (based
+  on TDP, not measured).
+
+* Given that an algorithm such as this is so far from the advertised maximums,
+  one must wonder if it's possible to get close to the advertised values with
+  real world codes.
+
+* FP64 performance is 26% of FP32 on GF110 and 8% on GM107.
+
+
+Collatz
+~~~~~~~
+
+Collatz is the algorithm I implemented in `this project
+<../../software/collatz/index.html>`_.
+
+This is an unusual algorithm for a GPU. There are no floating point operations,
+only bitwise and integer operations. The algorithm consists of a loop that
+starts with a 128-bit texture lookup (4 ints), which are then processed in
+approximately 30 PTX instructions. The texture is approximately 6MB in size.
+There is a lot of divergence, as each thread in the warp loops a different
+number of times.
+
+============== =============== =============== =============== ===============
+\                        GF100           GF110           GK106           GM107
+============== =============== =============== =============== ===============
+Delay checks         9,4 B N/s       8,6 B N/s       6,2 B N/s       6,3 B N/s
+============== =============== =============== =============== ===============
+
+| B N/s: Billion 128-bit values checked for new Delay Records in a range
+  starting at 15 trillion, per second.
+
+Observations
+------------
+
+* In the Mandelbrot benchmark, the $149 Maxwell almost matches the $499 Fermi in
+  FP32 performance. That's impressive, but a pure FP32 benchmark plays to
+  Maxwell's strengths. That is because, with Kepler, NVIDIA reduced performance
+  on bitwise, integer and FP64 operations in favor of FP32 and Maxwell generally
+  continues that trend (the exception is a new barrel shifter, important for
+  cryptography and cryptocoin mining). Given that this algorithm has a 128-bit
+  texture lookup for every 30 PTX instructions, and only uses bitwise and
+  integer operations, I expected the Maxwell to struggle both due to its low
+  memory bandwidth and its design focus on FP32. So I was impressed to see that
+  the chip keeps up so well, running the algorithm at 2/3 the speed of the
+  Fermi. Remember $499/529mm\ :sup:`2`/250W vs. $149/148mm\ :sup:`2`/60W
+  (released almost exactly 4 years appart).
+
+* Back in 2010, I had to build a new computer around the 1st gen Fermi, with a
+  large PSU and a case with extra cooling. The thing was loud and heated up the
+  room. Now, I'm running the Maxwell card in my work computer. A Dell not
+  designed in any way for a large graphics card. The Maxwell card has a 2-fan
+  cooler that is oversized for the 60W TDP. I think the manufacturers put them
+  on the Maxwell cards because that's what customers expect to see. The fans are
+  not audible even when the card is working hard.
+
+* The Maxwell card doesn't even need a PCIe power connector (though NVIDIA's
+  partner cards do have them -- probably to avoid stressing marginally designed
+  motherboards).
+
+* This all seems promising for future Maxwell cards that are designed for
+  compute. With its 128-bit memory bus, this card is designed for mid-level
+  graphics. That is compared to the 384-bit bus on the Fermi. My guess is that
+  the new large cache in Maxwell makes up for the difference in bus width.
+
+* The Kepler card has more than double the TDP of the Maxwell card, yet runs the
+  algorithm slightly slower. So, at least in this case, NVIDIA's claim of 2x
+  performance/Watt is true.
+
+* Multiplying GM107 by 4, we get a chip with 7.48 B transistors, 5224 GF FP32,
+  344 GB/s bandwidth and 240W TDP. That's around the same FP32 and bandwidth as
+  a GeForce GTX 780 Ti. Surprisingly, it's about the same TDP as well -- not
+  half, as one might expect since the GTX 780 Ti is a Kepler.
+
+
+PBKDF2-HMAC-SHA1 and Blowfish
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This test uses a combination of two algorithms I implemented in CUDA,
+PBKDF2-HMAC-SHA1 and Blowfish. SHA-1 is a secure hash and Blowfish is an
+encryption algorithm. PBKDF2 calculates a large number of SHA-1 hashes on short
+messages. Both SHA-1 and Blowfish use a large number of bitwise operations,
+mainly barrel rotations and exclusive or (EOR). There are also some integer
+operations. There are no floating point operations. Block size was tuned for
+best performance on each card.
+
+============== =============== =============== =============== ===============
+\                        GF110           GK106           GK110           GM107
+============== =============== =============== =============== ===============
+Operations             2.4 M/s         1.7 M/s         4.3 M/s         2.0 M/s
+============== =============== =============== =============== ===============
+
+| M/s: Million operations per second, where each operation is a 1024 round
+  PBKDF2-HMAC-SHA1 + 1024 byte Blowfish decryption.
+
+Observations
+------------
+
+* The small $149/1.87B/60W GTX 750 Ti (Maxwell) performs this task at almost
+  half the speed of the large $699/7.08B/250W GTX 780 Ti (Kepler). This is in
+  part because a single instruction barrel shifter was added on Maxwell, while
+  two instructions are needed on Kepler.
+
+* GTX 570 holds its own, beating the GTX 660 and the GTX 750 Ti but using many
+  more transistors and much more power doing it.
+
+* Comparing performance vs. number of transistors between mid-range and high-end
+  Kepler (GTX 780 Ti and GTX 660) shows a linear relationship. Not surprising,
+  since they're in the same generation.
+  
+* Comparing performance vs. number of transistors between Kepler and Maxwell
+  (GTX 780 Ti and GTX 750 Ti) shows that, while GTX 780 Ti has 3.7x more
+  transistors, it has only 2.2x more performance, which indicates that Maxwell
+  is using its transistors much more efficiently (though there's also a
+  difference in clock)
+
+* It looks like the only reason to hold on to GTX Fermi cards would be if you
+  have workloads that use double precision floating point, as gaming cards of
+  the Kepler and Maxwell generations are very weak in those areas.

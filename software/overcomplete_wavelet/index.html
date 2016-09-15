@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CUDA Overcomplete Wavelet (OW) Filter &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="CUDA" href="../../index_cuda.html" />
+    <link rel="next" title="Heavily compressed" href="comparison_heavily_compressed.html" />
+    <link rel="prev" title="CUDA" href="../../index_cuda.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="comparison_heavily_compressed.html" title="Heavily compressed"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../../index_cuda.html" title="CUDA"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li><a href="../../index_cuda.html" accesskey="U">CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CUDA Overcomplete Wavelet (OW) Filter</a><ul>
+<li><a class="reference internal" href="#motivation">Motivation</a></li>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#cuda-ow-dll">CUDA OW DLL</a></li>
+<li><a class="reference internal" href="#gui-application">GUI application</a></li>
+<li><a class="reference internal" href="#custom-mencoder">Custom MEncoder</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#a-brief-overview-of-the-filtering-process">A brief overview of the filtering process</a><ul>
+<li><a class="reference internal" href="#mirror-adressing-mode">Mirror adressing mode</a></li>
+<li><a class="reference internal" href="#kernel-performance">Kernel performance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#todo">Todo</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+      <hr><ul><li class="dl_l1">Download</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l1_os">Windows 64<br><a href="/static/cuda_ow_exe.7z">cuda_ow_exe.7z</a></li>
+<li class="dl_l1_os">Source<br><a href="/static/cuda_ow_src.7z">cuda_ow_src.7z</a></li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">C++</li>
+<li class="dl_l2">CUDA C</li>
+<li class="dl_l2">FFMpeg</li>
+<li class="dl_l2">wxWidgets</li>
+<li class="dl_l2">Boost</li>
+<li class="dl_l2">DLL</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../../index_cuda.html"
+                        title="previous chapter">CUDA</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="comparison_heavily_compressed.html"
+                        title="next chapter">Heavily compressed</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="cuda-overcomplete-wavelet-ow-filter">
+<h1>CUDA Overcomplete Wavelet (OW) Filter<a class="headerlink" href="#cuda-overcomplete-wavelet-ow-filter" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="motivation">
+<h2>Motivation<a class="headerlink" href="#motivation" title="Permalink to this headline">¶</a></h2>
+<p>FFMpeg contains an amazing video filter called the Overcomplete Wavelet (OW)
+filter. The filter uses the Cohen-Daubechies-Fauraue (CDF) 9/7 wavelet to
+removes noise from smooth areas of frames without smoothing the detailed areas.</p>
+<p>This shows what the filter can do with heavily compressed video. With a strong
+OW filter like this, it looks at first glance as if a significant amount of
+information has been lost, but comparing the discernible details (ignoring the
+noise and compression artifacts), shows that only a very small amount of
+information is lost.</p>
+<p>Full resolution: <a class="reference internal" href="comparison_heavily_compressed.html"><em>Heavily compressed</em></a></p>
+<div class="figure">
+<img alt="../../_images/comparison_heavily_compressed_small.jpg" src="../../_images/comparison_heavily_compressed_small.jpg" />
+</div>
+<p>Full resolution: <a class="reference internal" href="comparison_pvr250.html"><em>Analog TV recording</em></a></p>
+<div class="figure">
+<img alt="../../_images/comparison_pvr250_small.jpg" src="../../_images/comparison_pvr250_small.jpg" />
+</div>
+<p>Full resolution: <a class="reference internal" href="comparison_pvr250_2.html"><em>Analog TV recording, Zoom</em></a></p>
+<div class="figure">
+<img alt="../../_images/comparison_pvr250_2_small.jpg" src="../../_images/comparison_pvr250_2_small.jpg" />
+</div>
+<p>The main usage for this filter is to increase compression rates when transcoding
+noisy video. If the noise is not filtered out, the video encoder will attempt to
+preserve it, which will hurt both the quality of the encode and the compression
+ratio. However, the filter is extremely expensive. Running a 1920x1080 movie
+through the OW filter with MEncoder:</p>
+<div class="highlight-python"><div class="highlight"><pre>mencoder -nosound -ovc raw test.mkv -o test.avi -vf ow=6:3:3
+</pre></div>
+</div>
+<p>processes the movie at around 0.25 fps on my Q6600 (Core 2 Quad Kentsfield at
+2.4GHz). At that rate, a 2 hour movie takes around 10 days to process. Using
+CUDA, I&#8217;ve increased the processing rate to 3.8 fps on the same movie, running
+on my GTX 275 (GT200b, 240 cores at 633MHz), decreasing the total processing
+time from 10 days to 16 hours.</p>
+</div>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The CUDA OW filter project consists of 3 parts:</p>
+<ul class="simple">
+<li>The CUDA OW filter implemented as a DLL.</li>
+<li>A GUI application that exercises the DLL.</li>
+<li>A custom version of MEncoder that calls out to the DLL for OW filtering.</li>
+</ul>
+<div class="section" id="cuda-ow-dll">
+<h3>CUDA OW DLL<a class="headerlink" href="#cuda-ow-dll" title="Permalink to this headline">¶</a></h3>
+<p>I implemented the CUDA OW filter as a DLL to make it easy to pull into other
+projects and to limit the dependencies on the CUDA runtime to a single location.
+The DLL is used from the GUI application (see below) and from the custom version
+of MEncoder.</p>
+</div>
+<div class="section" id="gui-application">
+<h3>GUI application<a class="headerlink" href="#gui-application" title="Permalink to this headline">¶</a></h3>
+<p>I built the GUI application initially just to exercise the DLL but it&#8217;s now
+usable in its own right. It uses FFMpeg to open all videos that FFMpeg supports
+and OW filter parameters can be adjusted with sliders while watching the result
+in real time to find the best parameters for a given movie.</p>
+<p>The most convenient way to use the GUI application is to associate it as a
+non-default program to open the video file formats of interest (On Windows 7,
+right-click the video file, Open With, Chose default program, unselect Use the
+selected program to open this kind of file, browse to me_gui.exe).</p>
+<p>The GUI application also contains a CPU implementation of the filter adapted
+from the one in FFMpeg. The implementation in FFMpeg uses some fairly convoluted
+pointer arithmetic for pixel adressing while the GPU works best with cartesian
+adressing, so I started the project by converting the FFMpeg version to use
+cartesian adressing. In the process, I found a code layout that made it much
+easier (at least to me) to see exactly how the filter works, so I kept that
+version for benchmarking against the CPU even after I had the GPU kernels
+working.</p>
+<img alt="../../_images/cuda_ow_small.jpg" src="../../_images/cuda_ow_small.jpg" />
+<p>Keyboard shortcuts:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>Space</td>
+<td>Swap between filtered and unfiltered view</td>
+</tr>
+<tr class="row-even"><td>Pg-Dn</td>
+<td>Next frame</td>
+</tr>
+<tr class="row-odd"><td>Enter</td>
+<td>Run</td>
+</tr>
+<tr class="row-even"><td>Esc</td>
+<td>Stop</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="custom-mencoder">
+<h3>Custom MEncoder<a class="headerlink" href="#custom-mencoder" title="Permalink to this headline">¶</a></h3>
+<p>The customization of MEncoder consists of a new version of vf_ow.c that calls
+out to the CUDA OW DLL. Compiling MEncoder with all the bells and whistles is
+not trivial and my version focuses on the parts that I use, and leaves out a
+lot. I&#8217;ve included that version of MEncoder along with the new vf_ow.c file.</p>
+<p><a class="reference internal" href="compiling_mencoder_with_cuda_ow.html"><em>Compiling MEncoder with CUDA OW</em></a></p>
+</div>
+</div>
+<div class="section" id="a-brief-overview-of-the-filtering-process">
+<h2>A brief overview of the filtering process<a class="headerlink" href="#a-brief-overview-of-the-filtering-process" title="Permalink to this headline">¶</a></h2>
+<p>To perform a 2D wavelet transform, first, the source image is split into two
+images. One image contains the low frequency components of the source image and
+one contains the high frequency components. Each of the two images are then
+again split into two images in the same way, resulting in a total of 4 images
+generated from the one source image, each of the same resulution as the source.</p>
+<p>This process can be repeated several times, each time taking the one of the 4
+previously generated images that contain the lowest frequencies and using it
+as a source for creating 4 more images. We refer to each set of 4 images as a
+level.</p>
+<p>The number of times the process is repeated is refered to as the depth. The
+deeper the depth, the lower the frequencies that can be processed.</p>
+<p>When the 2D wavelet transformation is complete, there is a total of 4 x depth
+images.</p>
+<p>After the transformation, specific frequencies in the image can be processed
+individually by altering the data in specific images at specific depths.</p>
+<p>After the wavelet transformed images have been processed, an image is created
+by doing an inverse wavelet transform. The inverse wavelet transform combines
+all the images generated by the wavelet transform into a single image.</p>
+<p>This image shows the sequence of images that are created in a wavelet transform.
+The source image is not shown. The four images in the leftmost vertical column
+are the images created in level 1. The next column contains the four images for
+level 2 and so on, out to a depth of 5.</p>
+<div class="figure">
+<a class="reference internal image-reference" href="../../_images/wavelet.png"><img alt="../../_images/wavelet.png" src="../../_images/wavelet.png" style="width: 100%;" /></a>
+</div>
+<div class="section" id="mirror-adressing-mode">
+<h3>Mirror adressing mode<a class="headerlink" href="#mirror-adressing-mode" title="Permalink to this headline">¶</a></h3>
+<p>A &#8220;mirror&#8221; adressing mode is used for handling pixel fetches that would read
+outside the image. This adressing works by folding a read position that would be
+outside of the image back into the image.</p>
+<p>In the following, REGULAR is the image and each letter is a pixel. The MIRROR
+areas are &#8220;reflections&#8221; of the regular pixels:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;MIRROR&gt; &lt;-        REGULAR       -&gt; &lt;MIRROR&gt;
+ihgfedcb abcdefghijklmnopqrstuvwxyz yxwvutsr
+</pre></div>
+</div>
+<p>The following function shows how mirror adressing works when only a single
+folding may be necessary. But in a real implementation, it is possible that more
+than one folding is required, which must be implemented with a loop.</p>
+<div class="highlight-python"><div class="highlight"><pre>int mirror (int x, int w) {
+       if (x &lt; 0)
+               return -x;
+       if (x &gt; w)
+               return w + w - x;
+       return x;
+}
+</pre></div>
+</div>
+<p>The GPU supports a mirror adressing mode, but that mode is not exposed in the
+high level CUDA API. I did some experiments to find out if running a software
+mirror function would slow the processes down and found that there was very
+little impact. So I&#8217;m currently doing mirroring in software instead of using the
+GPU hardware.</p>
+</div>
+<div class="section" id="kernel-performance">
+<h3>Kernel performance<a class="headerlink" href="#kernel-performance" title="Permalink to this headline">¶</a></h3>
+<p>The OW filter is implemented as 4 kernels that run sequentially:</p>
+<ol class="arabic simple">
+<li>2D wavelet transform.</li>
+<li>Smoothing.</li>
+<li>Inverse 2D wavelet transform.</li>
+<li>Dithering.</li>
+</ol>
+<p>The tall bars at the beginning and end are are the copying of data from CPU to
+GPU and back again. This is the Cost of Doing Business (CDB) with the GPU.</p>
+<p>Full resolution: <a class="reference internal" href="kernel_10_10_09_1.html"><em>Kernel 10/10/09 1</em></a></p>
+<div class="figure">
+<a class="reference internal image-reference" href="../../_images/kernel_10_10_09_1.png"><img alt="../../_images/kernel_10_10_09_1.png" src="../../_images/kernel_10_10_09_1.png" style="width: 100%;" /></a>
+</div>
+<p>Detailed timing info.</p>
+<p>Full resolution: <a class="reference internal" href="kernel_10_10_09_2.html"><em>Kernel 10/10/09 2</em></a></p>
+<div class="figure">
+<a class="reference internal image-reference" href="../../_images/kernel_10_10_09_2.png"><img alt="../../_images/kernel_10_10_09_2.png" src="../../_images/kernel_10_10_09_2.png" style="width: 100%;" /></a>
+</div>
+<p>Each of the 2D wavelet transform kernels reads 5 times as many pixels as are
+present in the image (rarely sequentially) and writes 2 times as many pixels
+as are present in the image. In addition, several floating point additions and
+multiplications are done for each read. It says something about how fast the GPU
+is working that the 2D wavelet transform runs in only a fraction of the time
+that it takes to copy the data to the graphics card over a 16 lane PCIe bus.</p>
+<p>This is just a funky image I got while debugging.</p>
+<p>Full resolution: <a class="reference internal" href="tractor.html"><em>Tractor</em></a></p>
+<div class="figure">
+<img alt="../../_images/tractor_small.jpg" src="../../_images/tractor_small.jpg" />
+</div>
+</div>
+</div>
+<div class="section" id="todo">
+<h2>Todo<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
+<p>The Cohen-Daubechies-Fauraue (CDF) 9/7 wavelet used in this filter is the same
+filter that is used for lossy compression in JPEG2000. It would be interesting
+to see if compression and decompression of JPEG2000 could be accelerated using
+this code.</p>
+<p>The GUI application currently does not honor PAR or DAR (Pixel Aspect Ratio and
+Display Aspect Ratio) values.</p>
+<p>Video position slider.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="comparison_heavily_compressed.html" title="Heavily compressed"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../../index_cuda.html" title="CUDA"
+             >previous</a> |</li>
+        <li><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li><a href="../../index_cuda.html" >CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

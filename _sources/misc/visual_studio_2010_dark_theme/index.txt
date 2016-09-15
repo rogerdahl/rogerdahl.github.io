@@ -1,0 +1,77 @@
+
+How to set up a dark theme for Visual Studio 2010
+=================================================
+
+There are two types of themes for Visual Studio 2010. One affects only the
+colors of window borders and buttons. The other affects only the colors of the
+code editor and syntax highlighting. The two must be combined to create an
+overall dark theme.
+
+
+Install the Visual Studio color theme editor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* In Visual Studio, go to `Tools | Extension Manager`.
+* Click `Online Gallery`.
+* In the `Search Online Gallery` box, type `visual studio color theme editor`.
+* Click `Visual Studio Color Theme Editor` and click `Download`.
+* Click `Install`.
+* Restart Visual Studio.
+
+
+Download and install the Expression theme
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Expression theme is a Visual Studio color theme. Visual Studio color themes
+only affect the colors of the window borders and buttons, **not** the code
+editor windows.
+
+* Go to
+  http://www.nerdpad.com/visual-studio/visual-studio-2010-dark-expression-blend-color-theme,
+  right click `The Expression color theme` and Save As.
+* Extract the `Expression.vstheme` file from the Expression color theme zip
+  file.
+* In Visual Studio, open the new `Theme` menu on the main menu.
+* Click `Customize Colors`.
+* Click the small, yellow folder icon with `Import Theme` tool tip.
+* Browse to and select the `Expression.vstheme` file.
+
+
+Download and install the Metroline theme
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Metroline theme is a Visual Studio settings file that only contains color
+information. It only affects the editor windows, **not** the window borders and
+buttons.
+
+* Go to http://winterdom.com/2010/04/metroline-a-vs2010-color-scheme, right
+  click `Download` on `Download the most up to date .vssettings file for
+  Metroline.` and Save As.
+* In Visual Studio, go to `Tools | Import and Export Settings`.
+* Click `Import selected environment settings`.
+* Click `Yes, save my current settings`.
+* In `Choose a Collection of Settings to Import`, click `Browse`.
+* Browse to and select the `metroline.vssettings` file.
+* Leave `All Settings | Options | Environment | Fonts and Colors` checked.
+* Click `Finish`
+
+
+Fix the colors of the Solution Explorer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Many other windows, such as the Solution Explorer are not affected by these
+themes, and remain with a white background. There is a quick hack available that
+allows setting the foreground and background color of the Solution Explorer but
+it may cause issues in Visual Studio. YMMV.
+
+* In Visual Studio, go to `Tools | Extension Manager`.
+* Click `Online Gallery`.
+* In the `Search Online Gallery` box, type `sexcolor`.
+* Click `SExColor` and click `Download`.
+* Click `Install`.
+* Restart Visual Studio.
+* In Visual Studio, go to `Tools | Options | SExColor`.
+* Click on `Foreground` and `Define Custom Colors`. Then type 180, 180, 180, for
+  Red, Green and Blue.
+* Click on `Background` and `Define Custom Colors`. Then type 30, 30, 30, for
+  Red, Green and Blue.

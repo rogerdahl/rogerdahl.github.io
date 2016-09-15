@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CUDA Fill Media &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="CUDA" href="../../index_cuda.html" />
+    <link rel="next" title="CUDA Benoit" href="../benoit/index.html" />
+    <link rel="prev" title="Kernel 10/10/09 2" href="../overcomplete_wavelet/kernel_10_10_09_2.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../benoit/index.html" title="CUDA Benoit"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../overcomplete_wavelet/kernel_10_10_09_2.html" title="Kernel 10/10/09 2"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li><a href="../../index_cuda.html" accesskey="U">CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CUDA Fill Media</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#command-line">Command line</a></li>
+<li><a class="reference internal" href="#possible-choices-for-medium-free-and-first-medium-free">Possible choices for <em>&#8211;medium_free</em> and <em>&#8211;first_medium_free</em></a></li>
+<li><a class="reference internal" href="#example-output-json">Example output (JSON)</a></li>
+<li><a class="reference internal" href="#limitations">Limitations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation">Implementation</a><ul>
+<li><a class="reference internal" href="#strategy">Strategy</a></li>
+<li><a class="reference internal" href="#group-size">Group size</a></li>
+<li><a class="reference internal" href="#kernel-performance">Kernel performance</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#todo">Todo</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+      <hr><ul><li class="dl_l1">Download</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l1_os">Windows 64<br><a href="/static/cuda_fill_media_exe.7z">cuda_fill_media_exe.7z</a></li>
+<li class="dl_l1_os">Source<br><a href="/static/cuda_fill_media_src.7z">cuda_fill_media_src.7z</a></li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">C++</li>
+<li class="dl_l2">CUDA C</li>
+<li class="dl_l2">JSON</li>
+<li class="dl_l2">Boost</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../overcomplete_wavelet/kernel_10_10_09_2.html"
+                        title="previous chapter">Kernel 10/10/09 2</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../benoit/index.html"
+                        title="next chapter">CUDA Benoit</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="cuda-fill-media">
+<h1>CUDA Fill Media<a class="headerlink" href="#cuda-fill-media" title="Permalink to this headline">¶</a></h1>
+<p>Fit set of files onto set of media of given size.</p>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>Use the <em>&#8211;folder</em> option to add files or folders and the <em>&#8211;rfolder</em> option to
+add files. Both optiones recursively add all files found in the specified
+folders and below. The difference between the swithces is that <em>&#8211;folder</em> will
+not let any of the folders within the root folder separated out to different
+media while the <em>&#8211;rfolder</em> option allows the files to be separated. <em>&#8211;folder</em>
+preserves the name of the folder that the files are in throughout the process,
+while <em>&#8211;rfolder</em> uses only the filenames. For example, consider the following
+folder structure:</p>
+<div class="highlight-python"><div class="highlight"><pre>root
+  folder1
+    file1
+  folder2
+    file2
+    file3
+  file4
+</pre></div>
+</div>
+<p><em>&#8211;folder root</em> will cause the app to fit the following three items to media:</p>
+<ul class="simple">
+<li>folder1 (having the size of file1)</li>
+<li>folder2 (having the size of file2 + file3)</li>
+<li>file4</li>
+</ul>
+<p><em>&#8211;rfolder root</em> will cause the app to fit the four files to media:</p>
+<ul class="simple">
+<li>file1</li>
+<li>file2</li>
+<li>file3</li>
+<li>file4</li>
+</ul>
+<p>Use the <em>&#8211;media_free</em> option to specify media size (see table below). Add the
+<em>&#8211;first_medium_free</em> option if you have a different amount of free space
+available on the first media.</p>
+<p>If you intend do manually write the files to media, just let the JSON be output
+to stdout. The JSON is human readable. If you intend to process the output
+automatically, write it to a file with <em>&#8211;output</em> or pipe it.</p>
+<div class="section" id="command-line">
+<h3>Command line<a class="headerlink" href="#command-line" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>fill_media - Fit set of files onto set of media of given size - dahlsys.com:
+  -h [ --help ]                  produce help message
+  -f [ --folder ] arg            add source folder (adds files or folders)
+  -r [ --rfolder ] arg           add recursive source folder (adds files)
+  -v [ --verbose ]               display verbose messages
+  -m [ --media_free ] arg        media size. ? for options
+  -i [ --first_medium_free ] arg other size for first medium. ? for options
+  -c [ --cuda_device ] arg       cuda device
+  -o [ --output ] arg            output json to file instead of stdout
+</pre></div>
+</div>
+</div>
+<div class="section" id="possible-choices-for-medium-free-and-first-medium-free">
+<h3>Possible choices for <em>&#8211;medium_free</em> and <em>&#8211;first_medium_free</em><a class="headerlink" href="#possible-choices-for-medium-free-and-first-medium-free" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="74%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>&lt;number&gt;</td>
+<td>number bytes</td>
+</tr>
+<tr class="row-even"><td>&lt;number&gt;K</td>
+<td>number * 1024 bytes (KiB)</td>
+</tr>
+<tr class="row-odd"><td>&lt;number&gt;M</td>
+<td>number * 1,048,576 bytes (MiB)</td>
+</tr>
+<tr class="row-even"><td>&lt;number&gt;G</td>
+<td>number * 1,073,741,824 bytes (GiB)</td>
+</tr>
+<tr class="row-odd"><td>cd650</td>
+<td>681,574,400 bytes (650MiB)</td>
+</tr>
+<tr class="row-even"><td>cd700</td>
+<td>737,148,928 bytes (703MiB)</td>
+</tr>
+<tr class="row-odd"><td>cd800</td>
+<td>829,423,616 bytes (791MiB)</td>
+</tr>
+<tr class="row-even"><td>cd900</td>
+<td>912,261,120 bytes (870MiB)</td>
+</tr>
+<tr class="row-odd"><td>dvd1</td>
+<td>1,460,288,880 bytes (1.36GiB)</td>
+</tr>
+<tr class="row-even"><td>dvd2</td>
+<td>2,652,142,305 bytes (2.47GiB)</td>
+</tr>
+<tr class="row-odd"><td>dvd3</td>
+<td>2,920,577,761 bytes (2.72GiB)</td>
+</tr>
+<tr class="row-even"><td>dvd4</td>
+<td>5,315,022,028 bytes (4.95GiB)</td>
+</tr>
+<tr class="row-odd"><td>dvd5</td>
+<td>4,702,989,189 bytes (4.38GiB)</td>
+</tr>
+<tr class="row-even"><td>dvd9</td>
+<td>8,536,247,500 bytes (7.95GiB)</td>
+</tr>
+<tr class="row-odd"><td>dvd10</td>
+<td>9,395,240,960 bytes (8.75GiB)</td>
+</tr>
+<tr class="row-even"><td>dvd14</td>
+<td>13,239,236,689 bytes (12.33GiB)</td>
+</tr>
+<tr class="row-odd"><td>dvd18</td>
+<td>17,072,495,001 bytes (15.90GiB)</td>
+</tr>
+<tr class="row-even"><td>bdmini</td>
+<td>7,791,181,824 bytes (7,430 GiB)</td>
+</tr>
+<tr class="row-odd"><td>bdminidd</td>
+<td>15,582,363,648 bytes (14,860 GiB)</td>
+</tr>
+<tr class="row-even"><td>bd</td>
+<td>25,025,314,816 bytes (23,866 GiB)</td>
+</tr>
+<tr class="row-odd"><td>bddd</td>
+<td>50,050,629,632 bytes (47,732 GiB)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="example-output-json">
+<h3>Example output (JSON)<a class="headerlink" href="#example-output-json" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s">&quot;index&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s">&quot;files&quot;</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&quot;D:</span><span class="se">\\</span><span class="s">testfiles</span><span class="se">\\</span><span class="s">test5&quot;</span>
+        <span class="p">],</span>
+        <span class="s">&quot;free&quot;</span> <span class="p">:</span> <span class="mi">7535558</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">&quot;index&quot;</span> <span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s">&quot;files&quot;</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&quot;D:</span><span class="se">\\</span><span class="s">testfiles</span><span class="se">\\</span><span class="s">test6&quot;</span><span class="p">,</span>
+            <span class="s">&quot;D:</span><span class="se">\\</span><span class="s">testfiles</span><span class="se">\\</span><span class="s">test4&quot;</span>
+        <span class="p">],</span>
+        <span class="s">&quot;free&quot;</span> <span class="p">:</span> <span class="mi">109343727</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">&quot;index&quot;</span> <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+        <span class="s">&quot;files&quot;</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&quot;D:</span><span class="se">\\</span><span class="s">testfiles</span><span class="se">\\</span><span class="s">test1&quot;</span>
+        <span class="p">],</span>
+        <span class="s">&quot;free&quot;</span> <span class="p">:</span> <span class="mi">6412153</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">&quot;index&quot;</span> <span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="s">&quot;files&quot;</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&quot;D:</span><span class="se">\\</span><span class="s">testfiles</span><span class="se">\\</span><span class="s">test2&quot;</span><span class="p">,</span>
+            <span class="s">&quot;D:</span><span class="se">\\</span><span class="s">testfiles</span><span class="se">\\</span><span class="s">test3&quot;</span>
+        <span class="p">],</span>
+        <span class="s">&quot;free&quot;</span> <span class="p">:</span> <span class="mi">189030821</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s">&quot;index&quot;</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="s">&quot;files&quot;</span> <span class="p">:</span> <span class="p">[</span>
+            <span class="s">&quot;D:</span><span class="se">\\</span><span class="s">testfiles</span><span class="se">\\</span><span class="s">test7&quot;</span><span class="p">,</span>
+            <span class="s">&quot;D:</span><span class="se">\\</span><span class="s">testfiles</span><span class="se">\\</span><span class="s">test8&quot;</span><span class="p">,</span>
+            <span class="s">&quot;D:</span><span class="se">\\</span><span class="s">testfiles</span><span class="se">\\</span><span class="s">test9&quot;</span><span class="p">,</span>
+        <span class="p">],</span>
+        <span class="s">&quot;free&quot;</span> <span class="p">:</span> <span class="mi">534496517</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="limitations">
+<h3>Limitations<a class="headerlink" href="#limitations" title="Permalink to this headline">¶</a></h3>
+<p>This app works best when the files are big enough that only a few (between 1 and
+20) files fit onto each media (see <a class="reference internal" href="#implementation">Implementation</a> below) and the size of the
+files is fairly varied.</p>
+<p>There are a number of situations where this application will not perform well:</p>
+<ul class="simple">
+<li>If the files are much smaller than the size of the media, reordering the files
+to the optimal fit will not save much space as opposed to random ordering.</li>
+<li>If each of the files are larger than half of the size of the media, the only
+possible fit is one file per media. Similar situations arise at other uniform
+file sizes.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="strategy">
+<h3>Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Scan all folders provided by user and store path and size for each file.</li>
+<li>Divide files into groups where each group is small enough that all possible
+permutations within the group can be tested.</li>
+<li>Starting with the first group, check how each possible ordering of the files
+would fit onto a set of media. The ordering that uses fewest media and leaves
+the most free space on the last media wins.</li>
+<li>Repeat for each successive group, using the amount of free space left from the
+previous group as a starting point.</li>
+<li>Output the result as JSON that can be easily consumed by other apps.</li>
+</ul>
+</div>
+<div class="section" id="group-size">
+<h3>Group size<a class="headerlink" href="#group-size" title="Permalink to this headline">¶</a></h3>
+<p>The application currently uses a fixed group size of 10 files, resulting in
+3,628,800 combinations that must be checked for each group. The group size is
+hard coded because increasing it above 10 would slightly increase the complexity
+of the app due to a hardware limitation of the GPU.</p>
+<p>Exhaustively trying all possible combinations would give perfect results. But
+given that the progression of possible combinations is the factorial of the
+number of files, a brute force approach is only possible for a very small number
+of files, or an apprach like this app uses, where a larger number of files
+is split into small groups and the groups are processed separately. Below is a
+table that illustrates this. 1,000 files is far from an unreasonable number of
+files that you might want to fit onto media.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="24%" />
+<col width="76%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Number of files (n)</th>
+<th class="head">Permutations (n!)</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>8</td>
+<td>40,320</td>
+</tr>
+<tr class="row-odd"><td>9</td>
+<td>362,880</td>
+</tr>
+<tr class="row-even"><td>10</td>
+<td>3,628,800</td>
+</tr>
+<tr class="row-odd"><td>11</td>
+<td>39,916,800</td>
+</tr>
+<tr class="row-even"><td>12</td>
+<td>479,001,600</td>
+</tr>
+<tr class="row-odd"><td>13</td>
+<td>6,227,020,800</td>
+</tr>
+<tr class="row-even"><td>14</td>
+<td>87,178,291,200</td>
+</tr>
+<tr class="row-odd"><td>15</td>
+<td>1,307,674,368,000</td>
+</tr>
+<tr class="row-even"><td>1000</td>
+<td>40,238,726,007,709,377,354,370,243,392,300,398,571,937,486,
+421,071,463,254,379,991,042,993,851,239,862,902,059,204,420,
+848,696,940,480,047,998,861,019,719,605,863,166,687,299,480,
+855,890,132,382,966,994,459,099,742,450,408,707,375,991,882,
+362,772,718,873,251,977,950,595,099,527,612,087,497,546,249,
+704,360,141,827,809,464,649,629,105,639,388,743,788,648,733,
+711,918,104,582,578,364,784,997,701,247,663,288,983,595,573,
+543,251,318,532,395,846,307,555,740,911,426,241,747,434,934,
+755,342,864,657,661,166,779,739,666,882,029,120,737,914,385,
+371,958,824,980,812,686,783,837,455,973,174,613,608,537,953,
+452,422,158,659,320,192,809,087,829,730,843,139,284,440,328,
+123,155,861,103,697,680,135,730,421,616,874,760,967,587,134,
+831,202,547,858,932,076,716,913,244,842,623,613,141,250,878,
+020,800,026,168,315,102,734,182,797,770,478,463,586,817,016,
+436,502,415,369,139,828,126,481,021,309,276,124,489,635,992,
+870,511,496,497,541,990,934,222,156,683,257,208,082,133,318,
+611,681,155,361,583,654,698,404,670,897,560,290,095,053,761,
+647,584,772,842,188,967,964,624,494,516,076,535,340,819,890,
+138,544,248,798,495,995,331,910,172,335,555,660,213,945,039,
+973,628,075,013,783,761,530,712,776,192,684,903,435,262,520,
+001,588,853,514,733,161,170,210,396,817,592,151,090,778,801,
+939,317,811,419,454,525,722,386,554,146,106,289,218,796,022,
+383,897,147,608,850,627,686,296,714,667,469,756,291,123,408,
+243,920,816,015,378,088,989,396,451,826,324,367,161,676,217,
+916,890,977,991,190,375,403,127,462,228,998,800,519,544,441,
+428,201,218,736,174,599,264,295,658,174,662,830,295,557,029,
+902,432,415,318,161,721,046,583,203,678,690,611,726,015,878,
+352,075,151,628,422,554,026,517,048,330,422,614,397,428,693,
+306,169,089,796,848,259,012,545,832,716,822,645,806,652,676,
+995,865,268,227,280,707,578,139,185,817,888,965,220,816,434,
+834,482,599,326,604,336,766,017,699,961,283,186,078,838,615,
+027,946,595,513,115,655,203,609,398,818,061,213,855,860,030,
+143,569,452,722,420,634,463,179,746,059,468,257,310,379,008,
+402,443,243,846,565,724,501,440,282,188,525,247,093,519,062,
+092,902,313,649,327,349,756,551,395,872,055,965,422,874,977,
+401,141,334,696,271,542,284,586,237,738,753,823,048,386,568,
+897,646,192,738,381,490,014,076,731,044,664,025,989,949,022,
+222,176,590,433,990,188,601,856,652,648,506,179,970,235,619,
+389,701,786,004,081,188,972,991,831,102,117,122,984,590,164,
+192,106,888,438,712,185,564,612,496,079,872,290,851,929,681,
+937,238,864,261,483,965,738,229,112,312,502,418,664,935,314,
+397,013,742,853,192,664,987,533,721,894,069,428,143,411,852,
+015,801,412,334,482,801,505,139,969,429,015,348,307,764,456</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="kernel-performance">
+<h3>Kernel performance<a class="headerlink" href="#kernel-performance" title="Permalink to this headline">¶</a></h3>
+<p>I have made no attempt at optimizing this kernel. I checked the instruction
+throughput in the profiler and it is extremely low.</p>
+</div>
+</div>
+<div class="section" id="todo">
+<h2>Todo<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Optimize the kernel.</li>
+<li>Use a proper fitting algorithm. This application uses a brute force approach.
+Data fitting algorithms have been a field of study for a long time and better
+algorithms are available. One approach I&#8217;ve considered is to try using
+Simulated Annealing (SA) for this task.</li>
+<li>Implement a CPU version of the kernel and use it automatically if CUDA is not
+available.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../benoit/index.html" title="CUDA Benoit"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../overcomplete_wavelet/kernel_10_10_09_2.html" title="Kernel 10/10/09 2"
+             >previous</a> |</li>
+        <li><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li><a href="../../index_cuda.html" >CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

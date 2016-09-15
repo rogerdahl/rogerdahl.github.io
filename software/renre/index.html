@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>RenRe - Batch regex renaming of files and folders &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="Command Line" href="../../index_cmd.html" />
+    <link rel="next" title="Clipboard Upload" href="../clipboard_upload/index.html" />
+    <link rel="prev" title="Duplex - Delete duplicate files" href="../duplex/index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../clipboard_upload/index.html" title="Clipboard Upload"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../duplex/index.html" title="Duplex - Delete duplicate files"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cmd.html" accesskey="U">Command Line</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">RenRe - Batch regex renaming of files and folders</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#command-line">Command line</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation">Implementation</a><ul>
+<li><a class="reference internal" href="#strategy">Strategy</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+      <hr><ul><li class="dl_l1">Download</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l1_os">Windows 32<br><a href="/static/RenRe32.7z">RenRe32.7z</a></li>
+<li class="dl_l1_os">Windows 64<br><a href="/static/RenRe64.7z">RenRe64.7z</a></li>
+<li class="dl_l1_os">Source<br><a href="/static/RenReSrc.7z">RenReSrc.7z</a></li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">C++</li>
+<li class="dl_l2">Boost</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../duplex/index.html"
+                        title="previous chapter">Duplex - Delete duplicate files</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../clipboard_upload/index.html"
+                        title="next chapter">Clipboard Upload</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="renre-batch-regex-renaming-of-files-and-folders">
+<h1>RenRe - Batch regex renaming of files and folders<a class="headerlink" href="#renre-batch-regex-renaming-of-files-and-folders" title="Permalink to this headline">¶</a></h1>
+<p>Rename files and folders using regular expressions.</p>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>Use the <em>&#8211;folder</em> and <em>&#8211;rfolder</em> options to add folders to search for files
+and folders to rename. Use each option as many times as necessary to add
+different folder hierarchies. Use <em>&#8211;search</em> and <em>&#8211;replace</em> to specify a
+regular expressions and a format strings for renaming. Back references are
+allowed in the format strings.</p>
+<p>Regular expressions can be tricky. It&#8217;s a good idea to always run the app first
+with <em>&#8211;dry-run</em> just to make sure it will do what you want.</p>
+<p>Uses the <a class="reference external" href="http://www.boost.org/doc/libs/1_53_0/libs/regex/doc/html/boost_regex/syntax/perl_syntax.html">Perl Regular Expression Syntax</a>.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">When using multiple <em>&#8211;folder</em> and <em>&#8211;rfolder</em> switches, make sure that you
+are not inadvertently adding the same files multiple times, for instance by
+adding in a recursive directory and then a subdirectory of that directory. The
+same file could get renamed multiple times, causing confusing results.</p>
+</div>
+<p>If you get error <em>The application has failed to start because its side-by-side
+configuration is incorrect</em> or another error about missing DLLs or missing
+dependencies, download and run <a class="reference external" href="../_shared/vcredist_2010_64.exe">vcredist_2010_64.exe</a> or <a class="reference external" href="../_shared/vcredist_2010_32.exe">vcredist_2010_32.exe</a> (select the one that corresponds to the 32
+or 64 bit version of RenRe that you downloaded). You only have to do this once.</p>
+<p>If you get error <em>Not a valid Win32 application</em>, on a 32 bit version of
+Windows, make sure that you downloaded the 32 bit version of RenRe.</p>
+<div class="section" id="command-line">
+<h3>Command line<a class="headerlink" href="#command-line" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>RenRe - Batch regex renaming of files and folders - dahlsys.com:
+  --help                    produce help message
+  -f [ --folder ] arg       add search folder
+  -r [ --rfolder ] arg      add recursive search folder
+  -s [ --search ] arg       search regex (required)
+  -e [ --replace ] arg      replace with (back references allowed) (required)
+  -i [ --filter ] arg (=.*) file/folder filter regex
+  -d [ --dry-run ]          don&#39;t rename anything -- just simulate
+  -v [ --verbose ]          display verbose messages
+  -c [ --case-sensitive ]   make regexes case sensitive
+  -z [ --files-only ]       only rename files
+  -x [ --folders-only ]     only rename folders
+  -q [ --query ]            ask for confirmation for each rename
+  -l [ --depth ] arg        limit depth of recursive search
+
+  The search and replace arguments can be given without using options, as long
+  as they are given in that order.
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h3>
+<p>Rename all files and folders in the current folder to all UPPER CASE:</p>
+<div class="highlight-python"><div class="highlight"><pre>renre &quot;(.*)&quot; &quot;\U\1&quot;
+</pre></div>
+</div>
+<p>Rename all files and folders in the current folder to Title Case:</p>
+<div class="highlight-python"><div class="highlight"><pre>renre &quot;(^.| .)&quot; &quot;\U\1&quot;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="strategy">
+<h3>Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Use a depth-first recursive algorithm to process the folders and files.</li>
+<li>First create a list of files to rename and then do all renaming in a separate
+step to prevent issues that result from changing file and folder names while
+traversing the folder structure.</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../clipboard_upload/index.html" title="Clipboard Upload"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../duplex/index.html" title="Duplex - Delete duplicate files"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cmd.html" >Command Line</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

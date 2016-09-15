@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Investigating RAID performance &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="Misc" href="../../index_misc.html" />
+    <link rel="prev" title="How to set up a dark theme for Visual Studio 2010" href="../visual_studio_2010_dark_theme/index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../visual_studio_2010_dark_theme/index.html" title="How to set up a dark theme for Visual Studio 2010"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_misc.html" accesskey="U">Misc</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Investigating RAID performance</a><ul>
+<li><a class="reference internal" href="#how-to-fix-the-problem">How to fix the problem?</a></li>
+<li><a class="reference internal" href="#tips">Tips</a></li>
+<li><a class="reference internal" href="#benchmarks">Benchmarks</a><ul>
+<li><a class="reference internal" href="#background-material">Background material</a></li>
+<li><a class="reference internal" href="#single-drive">Single drive</a></li>
+<li><a class="reference internal" href="#two-drives-on-one-channel-master-slave">Two drives on one channel (master-slave)</a></li>
+<li><a class="reference internal" href="#two-drives-on-one-controller-master-master">Two drives on one controller (master-master)</a></li>
+<li><a class="reference internal" href="#two-drives-on-two-controllers">Two drives on two controllers</a></li>
+<li><a class="reference internal" href="#four-drives-on-two-controllers">Four drives on two controllers</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#more-information">More information</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../visual_studio_2010_dark_theme/index.html"
+                        title="previous chapter">How to set up a dark theme for Visual Studio 2010</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="investigating-raid-performance">
+<span id="investigating-raid-performance"></span><h1>Investigating RAID performance<a class="headerlink" href="#investigating-raid-performance" title="Permalink to this headline">¶</a></h1>
+<p>If you have two or four identical drives in a RAID stripe set and the performance is only a fraction of what you would expect, these notes may be of interest.</p>
+<p>Note: This page is relevant for inexpensive, firmware based RAID controllers or  software RAID with plain IDE controllers. The reason is that these solutions use naive RAID algorithms and do very little caching (since they share the system RAM). Professional RAID controllers don&#8217;t have the same limitations as they have significant onboard caches that are utilized by intelligent algorithms.</p>
+<p>A while ago, I decided to set up a RAID stripe set using 4 identical drives and one of the recent, inexpensive firmware based RAID controller cards, a Promise FastTrak100. I had already measured the transfer rate on the individual drives to a maximum transfer rate of 35MB/s each. So I figured that the new setup would give me a RAID drive with a max transfer rate  close to 140MB/s (4 x 35MB/s).</p>
+<p>As it turned out, I got a transfer rate that was actually slightly lower than that of a single drive, at barely 30MB/s. I did a search online and I found that many people were having trouble with RAID performance but the advice that was given was usually limited to one or more of the following:</p>
+<ul class="simple">
+<li>Use one drive per channel (master-master) instead of two drives on one channel (master-slave).</li>
+<li>Configure all drives to cable select (CS) or master (MA).</li>
+<li>Use 80 pin cables.</li>
+<li>Connect the drives to the outermost connectors.</li>
+<li>Make sure DMA is enabled for all drives both in the BIOS and in the OS.</li>
+</ul>
+<p>These advice are all beneficial but my setup already followed that advice.</p>
+<p>After measuring the transfer rates of different configurations, I realized that what what was happening was a combination of limitations in the IDE controller and mechanical limitations in the way hard drives work.</p>
+<p>Consider the basic layout of an IDE controller:</p>
+<p><img alt="" src="../../_images/hdctrl.png" /></p>
+<p>One IDE controller has one PCI interface and two channels. Each channel supports two drives, giving a max of 4 drives per controller. So two drives share a channel and two channels share the PCI interface.</p>
+<p>The problem with my controller was that the PCI interface was not able to handle the two channels running at full transfer rate, and one channel was not able to handle two drives running at full transfer rate. In other words, the bandwidth on a single channel is lower than two times the bandwidth of one drive  and the bandwidth on the PCI bus  is lower than two times the bandwidth of one channel.</p>
+<p>So, trying to read from two drives on the same channel would cause the transfer rate to be limited by the channel bandwidth. Trying to read from four drives at the same time would further limit the rate because of the PCI bandwidth limitation.</p>
+<p>Now, if those were the only limitations, things would still be ok because, with four drives, you would get a transfer rate equivalent to the bandwidth on the PCI interface, which is still pretty good. However, the controller limitations interact with mechanical limitations of the drives to create a much worse situation.</p>
+<p>Consider how a hard drive works (simplified): The platter rotates at a constant speed. The data is arranged in tracks. To read one track, the head must be standing still above the track while the platter makes one full rotation. So when the entire track is read, the head is positioned on the beginning of the track again. Say you want to read two tracks. You position the head on the first track, wait until the start of the track comes by, start reading and read until the end (which is also the start) of the track appears. If the second track started at the exact same point as the first track, you would miss the start of the second track because it would pass by while the head was moving from the first to the second track. You would then have to wait for the platter to make almost one full rotation before you could start reading the second track. To fix this problem, tracks are offset so that each track starts a little after the previous one. So when reading two tracks, the head can move to the second track before the beginning of that track comes around. The offsets are tuned so that the offset matches the time it takes for the head to move between tracks plus some safety margin.</p>
+<p>So, a hard drive can only supply data at a given speed since the platters rotate at a given speed. If you are not able to read data from the drive as fast as it&#8217;s being retrieved from the platter, there is no gentle degradation of performance. Instead, if you can&#8217;t keep up with the full speed, transfer rate is instantly halved as you&#8217;re only able to read from the platter on every other rotation. If you can&#8217;t keep up with that either, speed is reduced to 1/3rd and so on. When you&#8217;re not reading, you&#8217;re waiting for the beginning of the track you missed the first time to come around again.</p>
+<p>Combined, these two limitations, the one of the controller and the one of the hard drives,
+cause performance to suffer greatly. Instead of smoothly streaming data at the full rate from all the drives, you end up constantly falling behind and you have to wait for the platter to rotate a full turn before you can continue reading. Since the drives don&#8217;t run synchronously, you end up with a chaotic situation. When you&#8217;re ready to read a chunk of data from one drive, it&#8217;s random what the
+position of the platter is on that drive.</p>
+<div class="section" id="how-to-fix-the-problem">
+<span id="how-to-fix-the-problem"></span><h2>How to fix the problem?<a class="headerlink" href="#how-to-fix-the-problem" title="Permalink to this headline">¶</a></h2>
+<p>Ironically, the problem gets worse the faster your hard drives are, compared to how fast your controller is. So you might actually get better results using slower drives.</p>
+<p>The way that I alleviated the problem was to install an additional controller. That takes away the single channel limitation since no drives have to share channels. The PCI interface limitation is still there though, and I&#8217;d have to install 4 controllers to remove that limitation.</p>
+<p>It would be really nice if it was possible to low level format the drives. Then, you could increase the track skew to fit the speed you&#8217;re able to read at. Unfortunately, modern drives can not be low level formatted.</p>
+</div>
+<div class="section" id="tips">
+<span id="tips"></span><h2>Tips<a class="headerlink" href="#tips" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>If you want to install more than one controller, choose different types of controllers. The drivers I had got confused when there was more than one controller of one type installed.</li>
+<li>When you install multiple different controllers, you can no longer use the firmware RAID support on the controllers. You&#8217;ll have to set up software RAID. Which again means that you may not be able to boot from your RAID.</li>
+<li>If you want to make do with a single controller, try to set up your array using spanning instead of striping. When you use spanning, only one drive is active at a time so none of the limitations in the controller apply. You might end up getting much better performance and it&#8217;s easy to add drives to your array later.</li>
+<li>If you are concerned about performance, you  will probably not be able to use RAID level 5 (Striping and Parity) because it is very slow to write to (each write requires a number of read and write operations). If you need RAID level 5, consider a professional card. A good professional card can hide the significant overhead of RAID level 5 by using extensive caching.</li>
+</ul>
+</div>
+<div class="section" id="benchmarks">
+<span id="benchmarks"></span><h2>Benchmarks<a class="headerlink" href="#benchmarks" title="Permalink to this headline">¶</a></h2>
+<p>It is worth mentioning that because the performance of RAID arrays is extremely sensitive to these timing issues, the real world performance you will see is likely to be very different from your benchmarks (even more so than with most other types of benchmarks).</p>
+<div class="section" id="background-material">
+<span id="background-material"></span><h3>Background material<a class="headerlink" href="#background-material" title="Permalink to this headline">¶</a></h3>
+<p>To find the data used above, I used a program that measures the maximum transfer rate of the hard drive as a function of the head actuator position.</p>
+<p>The plateaus you see are parts of the drive where the amount of data is the same per sector. The sharp drops in read speed happen if the hard drive has to re-read data because of CRC errors or must wait for the computer to retrieve the data.</p>
+</div>
+<div class="section" id="single-drive">
+<span id="single-drive"></span><h3>Single drive<a class="headerlink" href="#single-drive" title="Permalink to this headline">¶</a></h3>
+<p><img alt="" src="../../_images/hd-single.png" /></p>
+<p>Measuring a single drive, you&#8217;ll see a single nice line tapering off towards the right, starting at the maximum transfer rate of your hard drive and decreasing as the actuator moves towards the center of the platter, where there&#8217;s less data per track so reading slows down.</p>
+<p>Notice that there are few variations in read speed.</p>
+</div>
+<div class="section" id="two-drives-on-one-channel-master-slave">
+<span id="two-drives-on-one-channel-master-slave"></span><h3>Two drives on one channel (master-slave)<a class="headerlink" href="#two-drives-on-one-channel-master-slave" title="Permalink to this headline">¶</a></h3>
+<p><img alt="" src="../../_images/hd-master-slave.png" /></p>
+<p>Measuring the speed of a stripe set of two drives sharing the same channel. Instead of starting at the expected 70MB/s (2<p> </p>
+x<p> </p>
+35MB/s), the transfer rate starts at 15MB/s. Not only that, it also varies seemingly chaotically and increases towards the end where you would expect it to decrease since the individual drives become slower.</p>
+</div>
+<div class="section" id="two-drives-on-one-controller-master-master">
+<span id="two-drives-on-one-controller-master-master"></span><h3>Two drives on one controller (master-master)<a class="headerlink" href="#two-drives-on-one-controller-master-master" title="Permalink to this headline">¶</a></h3>
+<p><img alt="" src="../../_images/hd-master-master.png" /></p>
+<p>Moving the two drives to separate channels on the same controller doubles the transfer rate.</p>
+</div>
+<div class="section" id="two-drives-on-two-controllers">
+<span id="two-drives-on-two-controllers"></span><h3>Two drives on two controllers<a class="headerlink" href="#two-drives-on-two-controllers" title="Permalink to this headline">¶</a></h3>
+<p><img alt="" src="../../_images/hd-master-master-2ctrl.png" /></p>
+<p>At the start of the measurement, the random variations in transfer rate and the fact that the average rate increases while the individual drives become slower indicate that a limit is being hit. This is probably an OS or driver limitation. At around 61MB/s combined, the line becomes smooth, indicating that the limitation applies to rates above that. Below that rate, the limit is no longer present and  both hard drives are working at their maximum transfer rates.</p>
+</div>
+<div class="section" id="four-drives-on-two-controllers">
+<span id="four-drives-on-two-controllers"></span><h3>Four drives on two controllers<a class="headerlink" href="#four-drives-on-two-controllers" title="Permalink to this headline">¶</a></h3>
+<p><img alt="" src="../../_images/hd-4master-2ctrl.png" /></p>
+<p>With four drives on two controllers, the limit that was hit with two drives  disappears and the PCI interface transfer rate limit is hit instead.</p>
+</div>
+</div>
+<div class="section" id="more-information">
+<span id="more-information"></span><h2>More information<a class="headerlink" href="#more-information" title="Permalink to this headline">¶</a></h2>
+<p>Read more about <a class="reference external" href="http://www.pcguide.com/ref/hdd/geom/tracksSkew-c.html">head skew</a> and
+<a class="reference external" href="http://storagereview.com/guide2000/ref/hdd/perf/perf/int/mech.html">mechanical hard drive design in general</a>.</p>
+<p>.. |psf| replace:: Python Software Foundation</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../visual_studio_2010_dark_theme/index.html" title="How to set up a dark theme for Visual Studio 2010"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_misc.html" >Misc</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

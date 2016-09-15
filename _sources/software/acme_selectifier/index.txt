@@ -1,0 +1,135 @@
+:technologies: Python|Django|Python photo Library (PIL)
+
+:download: Windows#acme_selectifier.py
+
+ACME Photo Deleter for iPad
+===========================
+
+Browse through and delete photos on your computer from your iPad.
+
+That doesn't sound very original, does it? Well, the idea behind this app
+is to make it as easy as possible to use the iPad to go through photos
+downloaded from a camera and delete unwanted photos.
+
+I made this app because my strategy when taking photos is to shoot tons of
+photos and hope that some of them come out. So after downloading the photos to
+my computer, I need to go through them and delete the bad ones (which is most of
+them), and I wanted to be able to do that on the iPad. This web app accomplishes
+that without photos having to be synchronized to the iPad, without any steps
+having to be performed on the computer and without
+swishy-swushy-side-scrolling to move between photos on the iPad.
+
+
+Usage
+-----
+
+* Use your regular procedure for downloading pictures from your camera to
+  your computer.
+
+* Kick back on your couch with your iPad and open the ACME Photo Deleter for
+  iPad web app from a browser.
+
+* Tap the *sync* button.
+
+* Holding the iPad in landscape orientation, use your thumbs to move back and
+  forth through your photos and to toggle the delete flag on and off. The delete
+  flag shows as a red "delete" or a green "keep" label in the upper right corner
+  of the screen.
+
+* When done, tap the *delete* button to delete all the photos that have the
+  delete flag set to "delete". Photos that have the delete flag set to "keep"
+  are not touched.
+
+
+Browse mode
+~~~~~~~~~~~
+
+*browse* starts a slideshow mode. This is handy for quickly browsing through the
+photos before starting the selection process, without having to tap for each
+photo.
+
+
+Tips
+~~~~
+
+* When you tap *delete* to delete the photos that you have selected for
+  deletion, only photos viewed before the photo currently being viewed are
+  considered for deletion. This makes it more convenient to use the app when it
+  is set to delete photos by default, because one can go through the photos in
+  several sessions, ending each session with a *delete*.
+
+* The selection state of each photo is stored in a database and is persistent
+  across runs of the application. So it is not neccessary to *delete*
+  before exiting the app.
+
+* When running *sync*, the selection state of all images is overwritten, so if
+  images have been selected for deletion, *delete* first.
+
+* The image download folder (see below) is searched recursively for images when
+  *sync* is tapped. This may take so long that the browser times out before the
+  sync is done. However, that does not stop the sync process, and after waiting
+  for it to finish, just tap refresh in the browser and the images will be ready
+  for processing.
+
+* Tapping the *prev* or *next* buttons automatically cancels the browse mode
+  if it is on.
+
+
+Install
+-------
+
+This is a Django web app. It can run from Apache or from the Django dev server.
+Install it like you would any other Django app. If you are not familiar with
+Django, installing a Django app is not hard. I'm not going to describe the
+process here because the Django web site at http://www.djangoproject.com/ has
+excellent instructions. I run it in a Linux VM under Windows and use CIFS to
+browse and delete photos in the Windows host.
+
+After installing, open the views.py file and edit the config setting at the
+top:
+
+**The size of the iPad screen**: If you have the original iPad, set this to
+1024, 768. If you have some other device, find out what the screen resolution is
+and set that.
+
+**Set if default is to keep or delete images**: True/False value that determines
+if photos are selected for keeping by default or if they are selected for
+deletion by default. I delete many more photos than I keep, so I set it to
+delete photos by default.
+
+**Image download folder**: The path to where the photos appear on your computer
+after you download them from your camera.
+
+**How long to display each image in browse mode**: The number of milliseconds to
+display each picture in browse mode.
+
+**Quality of JPEG compressed image that is transferred to the iPad**: A number
+between 0 and 100 that selects the quality of the photos as they appear on
+the iPad. At the default of 75, it takes a fraction of a second to browse to
+the next photo on the iPad. At higher values, the delay increases.
+
+Implementation
+--------------
+
+This app is a good example of the power of Python and Django. The application
+is only a couple of hundred lines of code, written in a single evening. Yet,
+it is a full-fledged web app that transcodes photos in real time and streams
+them over to the iPad.
+
+
+Strategy
+~~~~~~~~
+
+* Use the Python Imaging Library (PIL) to read the photos from disk, resize them
+  and recompress for an exact fit and quick wi-fi transfer to the iPad.
+
+* Transcode to JPEG. This is faster than transcoding to BMP, which is what I
+  first tried, because the limiting factor in app performance is the time it
+  takes to transfer the photos to the iPad over wi-fi. This is also why it's
+  better to resize and recode to JPEG than to transfer the full photo from the
+  computer to the iPad and then resize it there.
+
+Todo
+----
+
+* Works for me.

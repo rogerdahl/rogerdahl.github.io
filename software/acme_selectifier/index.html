@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ACME Photo Deleter for iPad &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">ACME Photo Deleter for iPad</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#browse-mode">Browse mode</a></li>
+<li><a class="reference internal" href="#tips">Tips</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#install">Install</a></li>
+<li><a class="reference internal" href="#implementation">Implementation</a><ul>
+<li><a class="reference internal" href="#strategy">Strategy</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#todo">Todo</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+      <hr><ul><li class="dl_l1">Download</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l1_os">Windows<br><a href="/static/acme_selectifier.py">acme_selectifier.py</a></li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">Python</li>
+<li class="dl_l2">Django</li>
+<li class="dl_l2">Python photo Library (PIL)</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="acme-photo-deleter-for-ipad">
+<h1>ACME Photo Deleter for iPad<a class="headerlink" href="#acme-photo-deleter-for-ipad" title="Permalink to this headline">¶</a></h1>
+<p>Browse through and delete photos on your computer from your iPad.</p>
+<p>That doesn&#8217;t sound very original, does it? Well, the idea behind this app
+is to make it as easy as possible to use the iPad to go through photos
+downloaded from a camera and delete unwanted photos.</p>
+<p>I made this app because my strategy when taking photos is to shoot tons of
+photos and hope that some of them come out. So after downloading the photos to
+my computer, I need to go through them and delete the bad ones (which is most of
+them), and I wanted to be able to do that on the iPad. This web app accomplishes
+that without photos having to be synchronized to the iPad, without any steps
+having to be performed on the computer and without
+swishy-swushy-side-scrolling to move between photos on the iPad.</p>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Use your regular procedure for downloading pictures from your camera to
+your computer.</li>
+<li>Kick back on your couch with your iPad and open the ACME Photo Deleter for
+iPad web app from a browser.</li>
+<li>Tap the <em>sync</em> button.</li>
+<li>Holding the iPad in landscape orientation, use your thumbs to move back and
+forth through your photos and to toggle the delete flag on and off. The delete
+flag shows as a red &#8220;delete&#8221; or a green &#8220;keep&#8221; label in the upper right corner
+of the screen.</li>
+<li>When done, tap the <em>delete</em> button to delete all the photos that have the
+delete flag set to &#8220;delete&#8221;. Photos that have the delete flag set to &#8220;keep&#8221;
+are not touched.</li>
+</ul>
+<div class="section" id="browse-mode">
+<h3>Browse mode<a class="headerlink" href="#browse-mode" title="Permalink to this headline">¶</a></h3>
+<p><em>browse</em> starts a slideshow mode. This is handy for quickly browsing through the
+photos before starting the selection process, without having to tap for each
+photo.</p>
+</div>
+<div class="section" id="tips">
+<h3>Tips<a class="headerlink" href="#tips" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>When you tap <em>delete</em> to delete the photos that you have selected for
+deletion, only photos viewed before the photo currently being viewed are
+considered for deletion. This makes it more convenient to use the app when it
+is set to delete photos by default, because one can go through the photos in
+several sessions, ending each session with a <em>delete</em>.</li>
+<li>The selection state of each photo is stored in a database and is persistent
+across runs of the application. So it is not neccessary to <em>delete</em>
+before exiting the app.</li>
+<li>When running <em>sync</em>, the selection state of all images is overwritten, so if
+images have been selected for deletion, <em>delete</em> first.</li>
+<li>The image download folder (see below) is searched recursively for images when
+<em>sync</em> is tapped. This may take so long that the browser times out before the
+sync is done. However, that does not stop the sync process, and after waiting
+for it to finish, just tap refresh in the browser and the images will be ready
+for processing.</li>
+<li>Tapping the <em>prev</em> or <em>next</em> buttons automatically cancels the browse mode
+if it is on.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<p>This is a Django web app. It can run from Apache or from the Django dev server.
+Install it like you would any other Django app. If you are not familiar with
+Django, installing a Django app is not hard. I&#8217;m not going to describe the
+process here because the Django web site at <a class="reference external" href="http://www.djangoproject.com/">http://www.djangoproject.com/</a> has
+excellent instructions. I run it in a Linux VM under Windows and use CIFS to
+browse and delete photos in the Windows host.</p>
+<p>After installing, open the views.py file and edit the config setting at the
+top:</p>
+<p><strong>The size of the iPad screen</strong>: If you have the original iPad, set this to
+1024, 768. If you have some other device, find out what the screen resolution is
+and set that.</p>
+<p><strong>Set if default is to keep or delete images</strong>: True/False value that determines
+if photos are selected for keeping by default or if they are selected for
+deletion by default. I delete many more photos than I keep, so I set it to
+delete photos by default.</p>
+<p><strong>Image download folder</strong>: The path to where the photos appear on your computer
+after you download them from your camera.</p>
+<p><strong>How long to display each image in browse mode</strong>: The number of milliseconds to
+display each picture in browse mode.</p>
+<p><strong>Quality of JPEG compressed image that is transferred to the iPad</strong>: A number
+between 0 and 100 that selects the quality of the photos as they appear on
+the iPad. At the default of 75, it takes a fraction of a second to browse to
+the next photo on the iPad. At higher values, the delay increases.</p>
+</div>
+<div class="section" id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p>This app is a good example of the power of Python and Django. The application
+is only a couple of hundred lines of code, written in a single evening. Yet,
+it is a full-fledged web app that transcodes photos in real time and streams
+them over to the iPad.</p>
+<div class="section" id="strategy">
+<h3>Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Use the Python Imaging Library (PIL) to read the photos from disk, resize them
+and recompress for an exact fit and quick wi-fi transfer to the iPad.</li>
+<li>Transcode to JPEG. This is faster than transcoding to BMP, which is what I
+first tried, because the limiting factor in app performance is the time it
+takes to transfer the photos to the iPad over wi-fi. This is also why it&#8217;s
+better to resize and recode to JPEG than to transfer the full photo from the
+computer to the iPad and then resize it there.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="todo">
+<h2>Todo<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Works for me.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

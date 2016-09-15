@@ -1,0 +1,20 @@
+:disable_comments: disable_comments
+
+Misc
+====
+
+.. toctree::
+  :maxdepth: 1
+
+  misc/quickfire_rapid/index.rst
+  misc/wd_mybook/index.rst
+  misc/string_perf/index.rst
+  misc/antialias/index.rst
+  misc/fan/index.rst
+  misc/fan_twin_frozr2_80mm/index.rst
+  misc/fan_twin_frozr2_92mm/index.rst
+  misc/kubuntu_12_04_hdmi_audio/index.rst
+  misc/compiling_ijg_libjpeg/index.rst
+  misc/patents/index.rst
+  misc/visual_studio_2010_dark_theme/index.rst
+  misc/raid/index.rst

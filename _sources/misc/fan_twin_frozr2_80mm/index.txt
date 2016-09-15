@@ -1,0 +1,68 @@
+.. _twin_frozr_80mm:
+
+Mounting standard 80mm fans on a Twin Frozr II
+==============================================
+
+.. note:: See :ref:`twin_frozr_92mm` for an alternate method for 92mm fans.
+
+When the fans on my GTX570 Twin Frozr II gave out, I decided to try to put
+two cheap, standard 80mm fans on there. It came out pretty well.
+
+.. figure:: fan_80_00.jpg
+
+
+The disadvantages to this approach are that the additional width causes the card
+to take up 3 slots instead of 2 and the fans always run at full speed. Also, if
+you care about esthetics, the fan bezel does not fit afterwards.
+
+
+One of the the replacement fans.
+
+.. figure:: fan_80_01.jpg
+
+
+Cut the fan away from the frame. Be careful -- the plastic is brittle.
+
+.. figure:: fan_80_02.jpg
+
+
+Fan without frame.
+
+.. figure:: fan_80_03.jpg
+
+
+The cooling fins have two brackets on which the fans are mounted. This is one
+of the brackets, after removing the old fan.
+
+The photo shows the cooler having been removed from the card, which I now don't
+think was necessary. However, if you want to remove the cooler from the card,
+only the 4 larger screws close to the GPU need to be loosened. The other screws
+are for the heat spreader. If you loosen the cooler or the heat spreader, make
+sure to have replacement thermal grease available.
+
+.. figure:: fan_80_04.jpg
+
+
+Remove the bracket from the fins.
+
+.. figure:: fan_80_05.jpg
+
+
+Use small zip ties to fasten the new fan onto the bracket.
+
+The photo shows the two rubber spacers that are under the bracket. These
+allow room for the zip ties to loop under the bracket.
+
+.. figure:: fan_80_06.jpg
+
+
+Mount the bracket back on the fins and repeat with the other fan.
+
+If you removed the cooler from the card, mount the cooler...
+
+.. figure:: fan_80_07.jpg
+
+
+...and you're done.
+
+.. figure:: fan_80_08.jpg

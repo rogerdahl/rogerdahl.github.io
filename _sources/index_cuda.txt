@@ -1,0 +1,15 @@
+:disable_comments: disable_comments
+
+CUDA
+====
+
+.. toctree::
+  :maxdepth: 1
+
+  cuda/benoit/index.rst
+  cuda/collatz/index.rst
+  cuda/overcomplete_wavelet/index.rst
+  cuda/fill_media/index.rst
+  cuda/locate_snippet/index.rst
+  cuda/hello_mandelbrot/index.rst
+  cuda/fermi_vs_maxwell/index.rst

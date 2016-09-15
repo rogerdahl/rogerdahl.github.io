@@ -1,0 +1,6 @@
+Heavily compressed
+==================
+
+.. image:: comparison_heavily_compressed.jpg
+
+

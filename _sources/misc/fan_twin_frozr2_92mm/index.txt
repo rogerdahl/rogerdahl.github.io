@@ -1,0 +1,16 @@
+.. _twin_frozr_92mm:
+
+Mounting standard 92mm fans on a Twin Frozr II
+==============================================
+
+.. note:: See :ref:`twin_frozr_80mm` for an alternate method for 80mm fans.
+
+This method was contributed by Jody Flint from the UK.
+
+92mm fans are mounted at an angle on the heatsink. They are held in place by
+wires threaded through holes in the heatsink.
+
+Jody says: After a fairly brief (15min) full load test they reached only 46'C,
+and quickly returned to an idle temp of 23'C.
+
+.. figure:: fan_92_00.jpg

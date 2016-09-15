@@ -1,0 +1,9 @@
+:disable_comments: disable_comments
+
+Hardware
+========
+
+.. toctree::
+  :maxdepth: 1
+
+  hardware/led_matrix/index.rst

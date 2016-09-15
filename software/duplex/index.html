@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Duplex - Delete duplicate files &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="Command Line" href="../../index_cmd.html" />
+    <link rel="next" title="RenRe - Batch regex renaming of files and folders" href="../renre/index.html" />
+    <link rel="prev" title="Command Line" href="../../index_cmd.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../renre/index.html" title="RenRe - Batch regex renaming of files and folders"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../../index_cmd.html" title="Command Line"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cmd.html" accesskey="U">Command Line</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Duplex - Delete duplicate files</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#command-line">Command line</a></li>
+<li><a class="reference internal" href="#interactive-mode-commands">Interactive mode commands</a></li>
+<li><a class="reference internal" href="#example-session">Example session</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation">Implementation</a><ul>
+<li><a class="reference internal" href="#strategy">Strategy</a></li>
+<li><a class="reference internal" href="#avoiding-false-duplicates">Avoiding false duplicates</a></li>
+<li><a class="reference internal" href="#the-birthday-paradox">The birthday paradox</a></li>
+<li><a class="reference internal" href="#performance">Performance</a></li>
+<li><a class="reference internal" href="#memory-usage">Memory usage</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#todo">Todo</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+      <hr><ul><li class="dl_l1">Download</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l1_os">Windows 64<br><a href="/static/duplex_exe.7z">duplex_exe.7z</a></li>
+<li class="dl_l1_os">Source<br><a href="/static/duplex_src.7z">duplex_src.7z</a></li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">C++</li>
+<li class="dl_l2">Boost</li>
+<li class="dl_l2">FNV</li>
+<li class="dl_l2">MD5</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../../index_cmd.html"
+                        title="previous chapter">Command Line</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../renre/index.html"
+                        title="next chapter">RenRe - Batch regex renaming of files and folders</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="duplex-delete-duplicate-files">
+<h1>Duplex - Delete duplicate files<a class="headerlink" href="#duplex-delete-duplicate-files" title="Permalink to this headline">¶</a></h1>
+<p>A duplicate file removal utility that can handle arbitrarily sized folders and
+allows setting up rules for which files to delete. Rules can be specified on
+the command line and run automatically or they can be specified while viewing
+groups of duplicates in an interactive session.</p>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>Use the <em>&#8211;folder</em> and <em>&#8211;rfolder</em> options to add folders to search for
+duplicates. Use each option as many times as necessary to add different folder
+hierarchies that should be checked for duplicates. The app searches for
+duplicates both within each hierarchy and between hierarchies.</p>
+<p>After searching for duplicates, the app will (by default) enter its interactive
+mode to allow setting up rules to select duplicates to delete. See <a class="reference internal" href="#interactive-mode-commands">Interactive
+mode commands</a> and <a class="reference internal" href="#example-session">Example session</a> below. Alternatively, the <em>&#8211;rule</em> option
+can be used to add rules on the command line and the rules can be executed
+automatically with <em>&#8211;automatic</em>.</p>
+<p>If you don&#8217;t know regular expressions, use the <em>file (b)</em> command to delete
+individual files in interactive mode.</p>
+<p>When done marking files, run the <em>delete</em> command to delete the marked files. The
+app deletes the marked files, updates the statistics (viewable with <em>status</em>),
+deletes the applied rules after which it goes back to interactive mode if there
+are still undeleted duplicates.</p>
+<p>A group is a list of duplicates. The app will not delete all the duplicates in a
+group. This ensures that at least one copy of any file that has duplicates is
+retained. This is accomplished by not applying a rule to the last file in a
+group if applying the rule would cause all the files in the group to be deleted.</p>
+<p>One or more list of files that have had their MD5 hashes calculated previously
+can be included in the search for duplicates by using the <em>&#8211;md5list</em> option.
+The format of the file must like the one generated by the md5deep -zr command.
+When <em>&#8211;md5list</em> is used, <em>&#8211;md5</em> is automatically enabled.</p>
+<div class="section" id="command-line">
+<h3>Command line<a class="headerlink" href="#command-line" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>Duplex - Delete duplicate files - dahlsys.com:
+  -h [ --help ]             produce help message
+  -d [ --dry-run ]          don&#39;t delete anything, just simulate
+  -a [ --automatic ]        don&#39;t enter interactive mode (delete without
+                            confirmation)
+  -s [ --filter-small ] arg ignore files of this size and smaller
+  -b [ --filter-big ] arg   ignore files of this size and bigger
+  -q [ --quiet ]            display only error messages
+  -v [ --verbose ]          display verbose messages
+  -e [ --debug ]            display debug / optimization info
+  -5 [ --md5 ]              use md5 cryptographic hash (fnv 64 bit hash is used
+                            by default)
+  -u [ --rule ] arg         add marking rule (case insensitive regex)
+  -r [ --rfolder ] arg      add recursive search folder
+  -m [ --md5list ] arg      add md5 list file (output from md5deep -zr)
+  -f [ --folder ] arg       add search folder
+
+Arguments are equivalent to rfolder options
+</pre></div>
+</div>
+</div>
+<div class="section" id="interactive-mode-commands">
+<h3>Interactive mode commands<a class="headerlink" href="#interactive-mode-commands" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>f, first          : go to first group
+l, last           : go to last group
+p, previous       : go to previous group
+n, next, &lt;Enter&gt;  : go to next group
+c, clear          : remove all manual editing
+r, rules          : list rules
+a, add &lt;rule&gt;     : add rule (case insensitive regular expression)
+b, file &lt;file #&gt;  : add rule (file number)
+d, remove &lt;index&gt; : remove rule
+h, help, ?        : display this message
+s, status         : display status
+o, open &lt;index&gt;   : open file
+quit, exit        : exit program without deleting anything
+delete            : delete all marked files
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-session">
+<h3>Example session<a class="headerlink" href="#example-session" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>E:\_tmp&gt;duplex -r bitjam
+Processing recursive: bitjam:
+Files: 1,410
+MD5:
+Data: 6.83% (14,639,083 / 214,363,426 bytes)
+Files: 39.42% (41 / 104 files)
+
+MD5:
+Data: 13.14% (28,158,952 / 214,363,426 bytes)
+Files: 46.15% (48 / 104 files)
+
+[...]
+
+MD5:
+Data: 97.42% (208,836,464 / 214,370,622 bytes)
+Files: 99.06% (105 / 106 files)
+
+MD5:
+Data: 100.00% (214,370,622 / 214,370,622 bytes)
+Files: 100.00% (106 / 106 files)
+
+
+Status:
+
+                 8 files
+                 4 duplicates
+                 0 marked files
+                 4 groups
+            16,862 bytes in all groups
+             8,431 bytes in duplicates
+                 0 bytes in all marked files
+                 2 files per group (average)
+Rules:
+
+No rules defined
+
+
+  1        3,598 bitjam/cue/fixed/bitjam_14_fix.cue
+  2        3,598 bitjam/cue/orig/bitjam_14.cue
+
+             7,196 bytes in group
+             3,598 bytes in duplicates
+                 0 bytes in marked files
+
+1 / 4 &gt; a 14.cue
+Rules:
+
+  1 14.cue
+
+
+  1        3,598 bitjam/cue/fixed/bitjam_14_fix.cue
+  2 *      3,598 bitjam/cue/orig/bitjam_14.cue
+
+             7,196 bytes in group
+             3,598 bytes in duplicates
+             3,598 bytes in marked files
+
+1 / 4 &gt; s
+
+Status:
+
+                 8 files
+                 4 duplicates
+                 1 marked files
+                 4 groups
+            16,862 bytes in all groups
+             8,431 bytes in duplicates
+             3,598 bytes in all marked files
+                 2 files per group (average)
+
+  1        3,598 bitjam/cue/fixed/bitjam_14_fix.cue
+  2 *      3,598 bitjam/cue/orig/bitjam_14.cue
+
+             7,196 bytes in group
+             3,598 bytes in duplicates
+             3,598 bytes in marked files
+
+1 / 4 &gt; delete
+
+About to delete 1 files (3,598 bytes) Delete? (y/n) &gt; y
+Deleting: 100.00% (1 / 1 files)
+Failed: 0 files
+
+1 / 4 &gt; exit
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="strategy">
+<h3>Strategy<a class="headerlink" href="#strategy" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Scan all folders provided by user and store file info sorted and grouped by
+size.</li>
+<li>Remove from consideration all files that have unique sizes (they can&#8217;t have
+duplicates).</li>
+<li>Calculate hashes for remaining files and group them by hash.</li>
+<li>Remove all groups that have only one member.</li>
+<li>Enter interactive mode which allows user to view groups of duplicates
+and specify rules for which files to delete.</li>
+</ul>
+</div>
+<div class="section" id="avoiding-false-duplicates">
+<h3>Avoiding false duplicates<a class="headerlink" href="#avoiding-false-duplicates" title="Permalink to this headline">¶</a></h3>
+<p>A challenge with an app that searches through folder hierarchies is to avoid
+searching the same locations multiple times. With an app that detects and
+deletes duplicates it is especially important to address this potential issue
+since, if the app was to find the same file multiple times, it would list those
+hits as duplicates. Deleting one of the &#8220;duplicates&#8221; would then cause the only
+copy of the file to be deleted.</p>
+<p>The risk of this happening was mitigated in the following ways:</p>
+<ul class="simple">
+<li>Though the <em>&#8211;folder</em> and <em>&#8211;rfolder</em> options allow specifying relative paths,
+the app internally handles all files with absolute paths. Whenever a file is
+to be added to a group of duplicates, the app checks if the absolute path of
+the file is already in the group. If the file is already in the group, it is
+skipped and, if <em>&#8211;verbose</em> has been specified, a warning is printed.</li>
+<li>If the user specifies two folder hierarchies where one has its root within the
+other, such as in &#8220;<em>&#8211;rfolder /home/someuser &#8211;rfolder /home</em>&#8221;, the app will
+add files found in the <em>/home/someuser</em> hiearchy only the first time they are
+encountered.</li>
+<li>To avoid the possibility of a single file being processed under different
+absolute paths, the app does not follow symbolic links on Windows or Linux. It
+also does not follow Folder Junctions on Windows.</li>
+</ul>
+</div>
+<div class="section" id="the-birthday-paradox">
+<h3>The birthday paradox<a class="headerlink" href="#the-birthday-paradox" title="Permalink to this headline">¶</a></h3>
+<p>Briefly, the birthday paradox is that in a group of 23 people, there is a 50%
+chance that two of them share the same birthday. This is counter intuitive for
+most people since there are 365 possible birthdays.</p>
+<p>The implications of this were considered when deciding to base the detection of
+duplicates on file hashes. From Wikipedia:</p>
+<p>given n random integers drawn from a discrete uniform distribution with range
+[1,d], what is the probability p(n;d) that at least two numbers are the same?</p>
+<div class="math">
+<p><img src="../../_images/math/ef58ae6dc220d5e93fc3dd1f4bcea1ea91ad5b18.png" alt="p(n;d) \approx 1 - \left( \frac{d-1}{d} \right)^{n(n-1)/2}"/></p>
+</div><p>Plugging in the numbers for 1,000,000 files and a 32 bit hash yields a 100%
+probability of collisions. 100,000 files gives a 69% probability. In the app,
+the file size is added to the hash to get some more entropy, but since file
+sizes are not necessarily non-uniform, yielding small groups of files with the
+same size, a 32 bit hash is obviously out of the question.</p>
+<p>Repeating the exercise for 1,000,000 files and 64 bit hash yields a 0.0000027%
+probability. That is in the worst case scenario of all 1,000,000 files having
+the same size. That seemed good enough, so a fast 64 bit hash called FNV1a was
+selected as the default option. However, an MD5 mode that can be enabled with
+the <em>&#8211;md5</em> option was also implemented. MD5 is a 128 bit hash, which yields a
+1.46e-25 probability of collisions. That number is so low that the formula could
+not be evaluated with regular double precision floats. An arbitrary-precision
+library and 40 digits of precision had to be used.</p>
+</div>
+<div class="section" id="performance">
+<h3>Performance<a class="headerlink" href="#performance" title="Permalink to this headline">¶</a></h3>
+<p>On a high end PC anno 2010, the app is disk bound when using FNV1a hashes and
+CPU bound when using MD5 hashes.</p>
+<p>The initial implementation ran hash calculations on the files as they were
+arranged in the internal structures of the app, where the primary ordering is by
+size. That caused a lot of skipping around on the disk, slowing down
+calculations on small files. That was fixed by adding a separate ordering step
+for the calculations, where the files are ordered by their paths.</p>
+<p>The FNV1a 64 bit hash does one 64 bit multiplication and one 8/64 bit EOR for
+each byte of input. 64 bit multiplications are fast on modern 64 bit CPUs but
+are slow on old 32 bit CPUs (where they must be emulated and 32 bit
+multiplications are slow to begin with).</p>
+</div>
+<div class="section" id="memory-usage">
+<h3>Memory usage<a class="headerlink" href="#memory-usage" title="Permalink to this headline">¶</a></h3>
+<p>The application caches file metadata in memory so the limiting factor as to how
+many files can be processed is how much memory is available. The information
+stored for each file is absolute path, size and hash. In addition, there is
+overhead in the structures themselves (linked lists and hash maps) and in the
+granularity of memory allocations performed by objects that dynamically allocate
+their memory such as std::wstring and boost::filesystem::wpath. Wide (Unicode)
+characters are used throughout. A test was run on a hierarchy with the following
+characteristics:</p>
+<ul class="simple">
+<li>Number of files: 331,808</li>
+<li>Average path length: 105 characters (210 bytes)</li>
+</ul>
+<p>The memory usage was 143,654,912 bytes, which gives 433 bytes of metadata per
+file and 2,479,773 files per GiB.</p>
+<p>If any of that memory gets swapped out to a virtual memory pagefile, performance
+of the app will probably decline dramatically as the internal structures are not
+traversed linearly.</p>
+</div>
+</div>
+<div class="section" id="todo">
+<h2>Todo<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
+<p>Currently, the only rule implemented is a regular expression matcher.</p>
+<p>Implement more rule types for selecting files to delete:</p>
+<ul class="simple">
+<li>Delete all but specific file in group.</li>
+<li>Delete all but shortest filename in group.</li>
+<li>Delete all but shortest filename in all groups.</li>
+<li>Delete all but longest filename in group.</li>
+<li>Delete all but longest filename in all groups.</li>
+<li>Delete all but shortest pathname in group.</li>
+<li>Delete all but shortest pathname in all groups.</li>
+<li>Delete all but longest pathname in group.</li>
+<li>Delete all but longest pathname in all groups.</li>
+</ul>
+<p>Add include/exclude options to filter which files get processed. For now, a
+workaround is to create a filtered list of MD5 hashes externally and feed it to
+the app with the &#8211;md5list option.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../renre/index.html" title="RenRe - Batch regex renaming of files and folders"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../../index_cmd.html" title="Command Line"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cmd.html" >Command Line</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

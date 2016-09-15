@@ -1,0 +1,11 @@
+:disable_comments: disable_comments
+
+How Patents Hinder Innovation
+=============================
+
+.. image:: https://www.eff.org/sites/default/files/effpatentchart.png
+  :height: 898
+  :width: 612
+
+For more information on how our patent system is hindering innovation, and what
+you can do about it, `check out the EFF Patent Fail campaign <https://www.eff.org/patent>`_.

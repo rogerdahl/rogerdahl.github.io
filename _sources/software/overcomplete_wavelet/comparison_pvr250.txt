@@ -1,0 +1,6 @@
+Analog TV recording
+===================
+
+.. figure:: comparison_pvr250.jpg
+
+Analog TV recording.

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>CUDA Locate Snippet &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="CUDA" href="../../index_cuda.html" />
+    <link rel="next" title="CUDA Collatz" href="../collatz/index.html" />
+    <link rel="prev" title="CUDA Benoit" href="../benoit/index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../collatz/index.html" title="CUDA Collatz"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../benoit/index.html" title="CUDA Benoit"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li><a href="../../index_cuda.html" accesskey="U">CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">CUDA Locate Snippet</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#implementation">Implementation</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+      <hr><ul><li class="dl_l1">Download</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l1_os">Windows 64<br><a href="/static/cuda_locate_snippet_exe.7z">cuda_locate_snippet_exe.7z</a></li>
+<li class="dl_l1_os">Source<br><a href="/static/cuda_locate_snippet_src.7z">cuda_locate_snippet_src.7z</a></li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">C++</li>
+<li class="dl_l2">CUDA C</li>
+<li class="dl_l2">Boost::GIL</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../benoit/index.html"
+                        title="previous chapter">CUDA Benoit</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../collatz/index.html"
+                        title="next chapter">CUDA Collatz</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="cuda-locate-snippet">
+<h1>CUDA Locate Snippet<a class="headerlink" href="#cuda-locate-snippet" title="Permalink to this headline">¶</a></h1>
+<p>This is a small app that takes two jpeg images as input, where one of the images
+is a cutout (&#8220;snippet&#8221;) of the other, and then creates a third image where the
+location of the cutout is marked.</p>
+<div class="figure">
+<a class="reference internal image-reference" href="../../_images/example.jpg"><img alt="../../_images/example.jpg" src="../../_images/example.jpg" style="width: 100%;" /></a>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>The app processes a batch of images. Only jpeg images are supported. Place the
+full images in the <cite>pix/full</cite> folder and the snippets in the <cite>pix/snippets</cite>
+folder. The image names must be exactly the same for the two sets of images.
+Each image in the <cite>pix/full</cite> folder must have a corresponding image in the
+<cite>pix/snippets</cite> folder. The app writes the tagged images to <cite>pix/tags</cite>, in jpeg
+format. The jpegs are stored with 90% quality. If another quality is desired,
+the source code must be altered and the app recompiled. When preparation of the
+images has been completed, run the executable.</p>
+</div>
+<div class="section" id="implementation">
+<h2>Implementation<a class="headerlink" href="#implementation" title="Permalink to this headline">¶</a></h2>
+<p>A simple, exhaustive search is performed. For each possible location of the
+snippet in the full image, the sum of absolute differences between the grayscale
+values of each pixel is calculated. The position in which the sum of differences
+is lowest is selected as the result.</p>
+<p>The algorithm was first implemented in Python. The search took around 1 day per
+image and was too slow for my needs. The CUDA implementation was almost four
+orders of magnitude faster (Around 7000x). I have not optimized either
+implementations. The Python implementation took 30 minutes to write. The CUDA
+implementation took half a day.</p>
+<p>Python implementation:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="kn">import</span> <span class="nn">Image</span>
+<span class="kn">import</span> <span class="nn">ImageDraw</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="n">full_path</span> <span class="o">=</span> <span class="s">&#39;./pix/full&#39;</span>
+<span class="n">snippets_path</span> <span class="o">=</span> <span class="s">&#39;./pix/snippets&#39;</span>
+<span class="n">tagged_path</span> <span class="o">=</span> <span class="s">&#39;./pix/tags&#39;</span>
+
+
+<span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="n">full</span><span class="p">,</span> <span class="n">snip</span><span class="p">,</span> <span class="n">snip_w</span><span class="p">,</span> <span class="n">snip_h</span><span class="p">,</span> <span class="n">x_off</span><span class="p">,</span> <span class="n">y_off</span><span class="p">):</span>
+  <span class="n">delta</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">for</span> <span class="n">ys</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">snip_h</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">snip_w</span><span class="p">):</span>
+      <span class="n">full_pixel</span> <span class="o">=</span> <span class="n">full</span><span class="p">[</span><span class="n">xs</span> <span class="o">+</span> <span class="n">x_off</span><span class="p">,</span> <span class="n">ys</span> <span class="o">+</span> <span class="n">y_off</span><span class="p">]</span>
+      <span class="n">snip_pixel</span> <span class="o">=</span> <span class="n">snip</span><span class="p">[</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">]</span>
+      <span class="n">delta</span> <span class="o">+=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">full_pixel</span> <span class="o">-</span> <span class="n">snip_pixel</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">delta</span>
+
+
+<span class="k">def</span> <span class="nf">draw_box</span><span class="p">(</span><span class="n">image_name</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">):</span>
+  <span class="n">full</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">full_path</span><span class="p">,</span> <span class="n">image_name</span><span class="p">))</span>
+  <span class="n">draw</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">full</span><span class="p">)</span>
+  <span class="n">draw</span><span class="o">.</span><span class="n">rectangle</span><span class="p">((</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">))</span>
+  <span class="n">draw</span><span class="o">.</span><span class="n">rectangle</span><span class="p">((</span><span class="n">x1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">x2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">),</span> <span class="n">outline</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+  <span class="n">full</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tagged_path</span><span class="p">,</span> <span class="n">image_name</span><span class="p">),</span> <span class="n">quality</span><span class="o">=</span><span class="mi">90</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">match</span><span class="p">(</span><span class="n">image_name</span><span class="p">):</span>
+  <span class="n">full</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">full_path</span><span class="p">,</span> <span class="n">image_name</span><span class="p">))</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;L&#39;</span><span class="p">)</span>
+  <span class="n">snip</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">snippets_path</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">image_name</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.jpg&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s">&#39;L&#39;</span><span class="p">)</span>
+  <span class="k">print</span> <span class="n">image_name</span>
+
+  <span class="n">full_mem</span> <span class="o">=</span> <span class="n">full</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+  <span class="n">snip_mem</span> <span class="o">=</span> <span class="n">snip</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+
+  <span class="n">full_w</span> <span class="o">=</span> <span class="n">full</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">full_h</span> <span class="o">=</span> <span class="n">full</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+  <span class="n">snip_w</span> <span class="o">=</span> <span class="n">snip</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+  <span class="n">snip_h</span> <span class="o">=</span> <span class="n">snip</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+  <span class="n">min_delta</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">maxint</span>
+  <span class="n">min_x</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="n">min_y</span> <span class="o">=</span> <span class="mi">0</span>
+
+  <span class="k">for</span> <span class="n">ys</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">full_h</span> <span class="o">-</span> <span class="n">snip_h</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">full_w</span> <span class="o">-</span> <span class="n">snip_w</span><span class="p">):</span>
+      <span class="n">delta</span> <span class="o">=</span> <span class="n">diff</span><span class="p">(</span><span class="n">full_mem</span><span class="p">,</span> <span class="n">snip_mem</span><span class="p">,</span> <span class="n">snip_w</span><span class="p">,</span> <span class="n">snip_h</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="n">min_delta</span><span class="p">:</span>
+        <span class="n">min_delta</span> <span class="o">=</span> <span class="n">delta</span>
+        <span class="n">min_x</span> <span class="o">=</span> <span class="n">xs</span>
+        <span class="n">min_y</span> <span class="o">=</span> <span class="n">ys</span>
+
+    <span class="k">print</span> <span class="s">&#39;{:.03}%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">ys</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">full_h</span> <span class="o">-</span> <span class="n">snip_h</span><span class="p">)</span> <span class="o">*</span> <span class="mf">100.0</span><span class="p">)</span>
+
+  <span class="n">draw_box</span><span class="p">(</span><span class="n">image_name</span><span class="p">,</span> <span class="n">min_x</span><span class="p">,</span> <span class="n">min_y</span><span class="p">,</span> <span class="n">min_x</span> <span class="o">+</span> <span class="n">snip_w</span><span class="p">,</span> <span class="n">min_y</span> <span class="o">+</span> <span class="n">snip_h</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+  <span class="k">for</span> <span class="n">image_path</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">full_path</span><span class="p">):</span>
+    <span class="n">match</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+  <span class="n">main</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../collatz/index.html" title="CUDA Collatz"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../benoit/index.html" title="CUDA Benoit"
+             >previous</a> |</li>
+        <li><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li><a href="../../index_cuda.html" >CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.2.2.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

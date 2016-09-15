@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Maxwell vs. Kepler and Fermi CUDA benchmark &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="CUDA" href="../../index_cuda.html" />
+    <link rel="next" title="Command Line" href="../../index_cmd.html" />
+    <link rel="prev" title="Hello Mandelbrot" href="../hello_mandelbrot/index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../index_cmd.html" title="Command Line"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../hello_mandelbrot/index.html" title="Hello Mandelbrot"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cuda.html" accesskey="U">CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Maxwell vs. Kepler and Fermi CUDA benchmark</a><ul>
+<li><a class="reference internal" href="#mandelbrot">Mandelbrot</a><ul>
+<li><a class="reference internal" href="#observations">Observations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#collatz">Collatz</a><ul>
+<li><a class="reference internal" href="#id1">Observations</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pbkdf2-hmac-sha1-and-blowfish">PBKDF2-HMAC-SHA1 and Blowfish</a><ul>
+<li><a class="reference internal" href="#id2">Observations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../hello_mandelbrot/index.html"
+                        title="previous chapter">Hello Mandelbrot</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../../index_cmd.html"
+                        title="next chapter">Command Line</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="maxwell-vs-kepler-and-fermi-cuda-benchmark">
+<h1>Maxwell vs. Kepler and Fermi CUDA benchmark<a class="headerlink" href="#maxwell-vs-kepler-and-fermi-cuda-benchmark" title="Permalink to this headline">¶</a></h1>
+<p>A couple of quick benchmarks to see how NVIDIA&#8217;s first Maxwell chip stacks up
+against earlier architectures.</p>
+<p>Note that I&#8217;m comparing apples and oranges &#8211; high-end and mid-range Fermi and
+Kepler, 1st and 2nd generation and a budget Maxwell card.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="15%" />
+<col width="15%" />
+<col width="15%" />
+<col width="19%" />
+<col width="21%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Chip name</th>
+<th class="head">GF100</th>
+<th class="head">GF110</th>
+<th class="head">GK106</th>
+<th class="head">GK110</th>
+<th class="head">GM107</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Product name</td>
+<td>GeForce GTX 480</td>
+<td>GeForce GTX 570</td>
+<td>GeForce GTX 660</td>
+<td>GeForce GTX 780 Ti</td>
+<td>GeForce GTX 750 Ti</td>
+</tr>
+<tr class="row-odd"><td>Architecture</td>
+<td>Fermi 1st gen</td>
+<td>Fermi 2nd gen</td>
+<td>Kepler 1st gen</td>
+<td>Kepler 2nd gen</td>
+<td>Maxwell 1st gen</td>
+</tr>
+<tr class="row-even"><td>ALU clock</td>
+<td>1,401 GHz</td>
+<td>1.500 GHz</td>
+<td>1.058 GHz</td>
+<td>0.876 GHz</td>
+<td>1.150 GHz</td>
+</tr>
+<tr class="row-odd"><td>Max FP32</td>
+<td>1345 GF</td>
+<td>1405 GF</td>
+<td>1882 GF</td>
+<td>5046 GF</td>
+<td>1306 GF</td>
+</tr>
+<tr class="row-even"><td>TDP</td>
+<td>250W</td>
+<td>219W</td>
+<td>140W</td>
+<td>250W</td>
+<td>60W</td>
+</tr>
+<tr class="row-odd"><td>Transistors</td>
+<td>3.20B</td>
+<td>3.00B</td>
+<td>2.54B</td>
+<td>7.08B</td>
+<td>1.87B</td>
+</tr>
+<tr class="row-even"><td>Lithography</td>
+<td>40nm</td>
+<td>40nm</td>
+<td>28nm</td>
+<td>28nm</td>
+<td>28nm</td>
+</tr>
+<tr class="row-odd"><td>Die size</td>
+<td>529mm<sup>2</sup></td>
+<td>520mm<sup>2</sup></td>
+<td>221mm<sup>2</sup></td>
+<td>561mm<sup>2</sup></td>
+<td>148mm<sup>2</sup></td>
+</tr>
+<tr class="row-even"><td>Mem bus width</td>
+<td>384</td>
+<td>320</td>
+<td>192</td>
+<td>384</td>
+<td>128</td>
+</tr>
+<tr class="row-odd"><td>Mem bandwidth</td>
+<td>177 GB/s</td>
+<td>152 GB/s</td>
+<td>144 GB/s</td>
+<td>336 GB/s</td>
+<td>86 GB/s</td>
+</tr>
+<tr class="row-even"><td>Launch price</td>
+<td>$499</td>
+<td>$349</td>
+<td>$229</td>
+<td>$699</td>
+<td>$149</td>
+</tr>
+<tr class="row-odd"><td>Released</td>
+<td>2010-03</td>
+<td>2010-12</td>
+<td>2012-09</td>
+<td>2013-11</td>
+<td>2014-04</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line">GF: GigaFLOPS (Billion Floating Point Operations Per Second).</div>
+</div>
+<div class="section" id="mandelbrot">
+<h2>Mandelbrot<a class="headerlink" href="#mandelbrot" title="Permalink to this headline">¶</a></h2>
+<p>This test uses a purely compute bound algorithm, a Mandelbrot escape time
+calculation. The algorithm consists of a loop with 14 floating point operations,
+a branch and an integer subtraction and test for zero. The loop was run 10,000
+times in each of approximately 24,000,000 threads. There is almost no I/O. Input
+is 2 floating point values, output is one integer value.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="32%" />
+<col width="34%" />
+<col width="34%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"></th>
+<th class="head">GF110</th>
+<th class="head">GM107</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>FP64</td>
+<td>137GF</td>
+<td>37GF</td>
+</tr>
+<tr class="row-odd"><td>FP32</td>
+<td>528GF</td>
+<td>479GF</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line">FP32: Single Precision Floating Point</div>
+<div class="line">FP64: Double Precision Floating Point</div>
+</div>
+<div class="section" id="observations">
+<h3>Observations<a class="headerlink" href="#observations" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>The budget Maxwell chip almost matches the high end Fermi chip on FP32
+performance while using only slightly more than a quarter of the power (based
+on TDP, not measured).</li>
+<li>Given that an algorithm such as this is so far from the advertised maximums,
+one must wonder if it&#8217;s possible to get close to the advertised values with
+real world codes.</li>
+<li>FP64 performance is 26% of FP32 on GF110 and 8% on GM107.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="collatz">
+<h2>Collatz<a class="headerlink" href="#collatz" title="Permalink to this headline">¶</a></h2>
+<p>Collatz is the algorithm I implemented in <a class="reference external" href="../../software/collatz/index.html">this project</a>.</p>
+<p>This is an unusual algorithm for a GPU. There are no floating point operations,
+only bitwise and integer operations. The algorithm consists of a loop that
+starts with a 128-bit texture lookup (4 ints), which are then processed in
+approximately 30 PTX instructions. The texture is approximately 6MB in size.
+There is a lot of divergence, as each thread in the warp loops a different
+number of times.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"></th>
+<th class="head">GF100</th>
+<th class="head">GF110</th>
+<th class="head">GK106</th>
+<th class="head">GK110</th>
+<th class="head">GM107</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Delay checks</td>
+<td>9,4 B N/s</td>
+<td>8,6 B N/s</td>
+<td>6,2 B N/s</td>
+<td>13,0 B N/s</td>
+<td>6,3 B N/s</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line">B N/s: Billion 128-bit values checked for new Delay Records in a range
+starting at 15 trillion, per second.</div>
+</div>
+<div class="section" id="id1">
+<h3>Observations<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>In the Mandelbrot benchmark, the $149 Maxwell almost matches the $499 Fermi in
+FP32 performance. That&#8217;s impressive, but a pure FP32 benchmark plays to
+Maxwell&#8217;s strengths. That is because, with Kepler, NVIDIA reduced performance
+on bitwise, integer and FP64 operations in favor of FP32 and Maxwell generally
+continues that trend (the exception is a new barrel shifter, important for
+cryptography and cryptocoin mining). Given that this algorithm has a 128-bit
+texture lookup for every 30 PTX instructions, and only uses bitwise and
+integer operations, I expected the Maxwell to struggle both due to its low
+memory bandwidth and its design focus on FP32. So I was impressed to see that
+the chip keeps up so well, running the algorithm at 2/3 the speed of the
+Fermi. Remember $499/529mm<sup>2</sup>/250W vs. $149/148mm<sup>2</sup>/60W
+(released almost exactly 4 years appart).</li>
+<li>Back in 2010, I had to build a new computer around the 1st gen Fermi, with a
+large PSU and a case with extra cooling. The thing was loud and heated up the
+room. Now, I&#8217;m running the Maxwell card in my work computer. A Dell not
+designed in any way for a large graphics card. The Maxwell card has a 2-fan
+cooler that is oversized for the 60W TDP. I think the manufacturers put them
+on the Maxwell cards because that&#8217;s what customers expect to see. The fans are
+not audible even when the card is working hard.</li>
+<li>The Maxwell card doesn&#8217;t even need a PCIe power connector (though NVIDIA&#8217;s
+partner cards do have them &#8211; probably to avoid stressing marginally designed
+motherboards).</li>
+<li>This all seems promising for future Maxwell cards that are designed for
+compute. With its 128-bit memory bus, this card is designed for mid-level
+graphics. That is compared to the 384-bit bus on the Fermi. My guess is that
+the new large cache in Maxwell makes up for the difference in bus width.</li>
+<li>The Kepler card has more than double the TDP of the Maxwell card, yet runs the
+algorithm slightly slower. So, at least in this case, NVIDIA&#8217;s claim of 2x
+performance/Watt is true.</li>
+<li>Multiplying GM107 by 4, we get a chip with 7.48 B transistors, 5224 GF FP32,
+344 GB/s bandwidth and 240W TDP. That&#8217;s around the same FP32 and bandwidth as
+a GeForce GTX 780 Ti. Surprisingly, it&#8217;s about the same TDP as well &#8211; not
+half, as one might expect since the GTX 780 Ti is a Kepler.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="pbkdf2-hmac-sha1-and-blowfish">
+<h2>PBKDF2-HMAC-SHA1 and Blowfish<a class="headerlink" href="#pbkdf2-hmac-sha1-and-blowfish" title="Permalink to this headline">¶</a></h2>
+<p>This test uses a combination of two algorithms I implemented in CUDA,
+PBKDF2-HMAC-SHA1 and Blowfish. SHA-1 is a secure hash and Blowfish is an
+encryption algorithm. PBKDF2 calculates a large number of SHA-1 hashes on short
+messages. Both SHA-1 and Blowfish use a large number of bitwise operations,
+mainly barrel rotations and exclusive or (EOR). There are also some integer
+operations. There are no floating point operations. Block size was tuned for
+best performance on each card.</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head"></th>
+<th class="head">GF110</th>
+<th class="head">GK106</th>
+<th class="head">GK110</th>
+<th class="head">GM107</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Operations</td>
+<td>2.4 M/s</td>
+<td>1.7 M/s</td>
+<td>4.3 M/s</td>
+<td>2.0 M/s</td>
+</tr>
+</tbody>
+</table>
+<div class="line-block">
+<div class="line">M/s: Million operations per second, where each operation is a 1024 round
+PBKDF2-HMAC-SHA1 + 1024 byte Blowfish decryption.</div>
+</div>
+<div class="section" id="id2">
+<h3>Observations<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>The small $149/1.87B/60W GTX 750 Ti (Maxwell) performs this task at almost
+half the speed of the large $699/7.08B/250W GTX 780 Ti (Kepler). This is in
+part because a single instruction barrel shifter was added on Maxwell, while
+two instructions are needed on Kepler.</li>
+<li>GTX 570 holds its own, beating the GTX 660 and the GTX 750 Ti but using many
+more transistors and much more power doing it.</li>
+<li>Comparing performance vs. number of transistors between mid-range and high-end
+Kepler (GTX 780 Ti and GTX 660) shows a linear relationship. Not surprising,
+since they&#8217;re in the same generation.</li>
+<li>Comparing performance vs. number of transistors between Kepler and Maxwell
+(GTX 780 Ti and GTX 750 Ti) shows that, while GTX 780 Ti has 3.7x more
+transistors, it has only 2.2x more performance, which indicates that Maxwell
+is using its transistors much more efficiently (though there&#8217;s also a
+difference in clock)</li>
+<li>It looks like the only reason to hold on to GTX Fermi cards would be if you
+have workloads that use double precision floating point, as gaming cards of
+the Kepler and Maxwell generations are very weak in those areas.</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../index_cmd.html" title="Command Line"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../hello_mandelbrot/index.html" title="Hello Mandelbrot"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_cuda.html" >CUDA</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

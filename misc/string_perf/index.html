@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>itoa and strlen performance &mdash; dahlsys.com</title>
+    
+    <link rel="stylesheet" href="../../_static/f6.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="dahlsys.com" href="../../index.html" />
+    <link rel="up" title="Misc" href="../../index_misc.html" />
+    <link rel="next" title="Anti-aliasing technologies" href="../antialias/index.html" />
+    <link rel="prev" title="Replacing disk on WD MyBook" href="../wd_mybook/index.html" /><link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,300italic,400italic,600italic|Source+Code+Pro' rel='stylesheet' type='text/css'>
+
+<!-- Piwik -->
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//rd.gnus.org/analytics/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', 2]);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//rd.gnus.org/analytics/piwik.php?idsite=1" style="border:0;" alt="" /></p></noscript>
+<!-- End Piwik Code -->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../antialias/index.html" title="Anti-aliasing technologies"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../wd_mybook/index.html" title="Replacing disk on WD MyBook"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_misc.html" accesskey="U">Misc</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/b3-tran.png" alt="Logo"/>
+            </a></p>
+  
+  <h3><a href="../../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><code class="docutils literal"><span class="pre">itoa</span></code> and <code class="docutils literal"><span class="pre">strlen</span></code> performance</a><ul>
+<li><a class="reference internal" href="#python">Python</a><ul>
+<li><a class="reference internal" href="#cpython">CPython</a></li>
+<li><a class="reference internal" href="#cython">Cython</a></li>
+<li><a class="reference internal" href="#pypy">PyPy</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#c">C</a></li>
+<li><a class="reference internal" href="#java">Java</a></li>
+<li><a class="reference internal" href="#id1">C++</a><ul>
+<li><a class="reference internal" href="#std">std</a></li>
+<li><a class="reference internal" href="#boost-format">boost::format</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#go">Go</a><ul>
+<li><a class="reference internal" href="#plain-serial">Plain serial</a></li>
+<li><a class="reference internal" href="#concurrent-with-workers-running-in-parallel">Concurrent, with workers running in parallel</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#pyopencl">PyOpenCL</a><ul>
+<li><a class="reference internal" href="#cpu">CPU</a></li>
+<li><a class="reference internal" href="#gpu">GPU</a></li>
+<li><a class="reference internal" href="#optimized-gpu">Optimized GPU</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cuda">CUDA</a></li>
+</ul>
+</li>
+</ul>
+
+
+  
+    <p>
+    
+      <hr><ul><li class="dl_l1">Download</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l1_os">Source<br><a href="/static/silly.tgz">silly.tgz</a></li>
+</ul>
+</ul>
+
+    
+
+    
+      <p><ul><li class="dl_l1">Technologies</li></ul>
+<ul class="current">
+<ul class="current">
+<li class="dl_l2">CPython</li>
+<li class="dl_l2">Cython</li>
+<li class="dl_l2">PyPy</li>
+<li class="dl_l2">C</li>
+<li class="dl_l2">Java</li>
+<li class="dl_l2">C++</li>
+<li class="dl_l2">Boost</li>
+<li class="dl_l2">Go</li>
+<li class="dl_l2">PyOpenCL</li>
+<li class="dl_l2">OpenCL</li>
+<li class="dl_l2">CUDA</li>
+</ul>
+</ul>
+
+    
+
+    
+    </p>
+  
+
+  <p>
+  <ul>
+    <li class="dl_l1">Questions and Feedback</li></ul>
+    <ul class="current">
+    <ul class="current">
+      <li class="dl_l2"><a href="mailto:dahlsys at gmail.com">Email</a></li>
+    </ul>
+    </ul>
+  </p>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../wd_mybook/index.html"
+                        title="previous chapter">Replacing disk on WD MyBook</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../antialias/index.html"
+                        title="next chapter">Anti-aliasing technologies</a></p>
+
+        </div>
+      </div>
+
+    <div class="document">
+  
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="itoa-and-strlen-performance">
+<h1><code class="docutils literal"><span class="pre">itoa</span></code> and <code class="docutils literal"><span class="pre">strlen</span></code> performance<a class="headerlink" href="#itoa-and-strlen-performance" title="Permalink to this headline">¶</a></h1>
+<p>This is a small project to investigage the performance of a simple algorithm
+across a number of languages and implementations. Interpreted and compiled
+languages are tested as well as serial and parallel implementations.</p>
+<p>The algorithm converts a series of 32-bit integers to their ASCII decimal base
+number representations (<code class="docutils literal"><span class="pre">itoa</span></code>), counts the number of characters in each
+number (<code class="docutils literal"><span class="pre">strlen</span></code>), sums them up and returns the total.</p>
+<p>Counting the characters and returning the total ensures that the basic
+operations cannot be optimized out and allows correctness to be checked. The
+correct result is <code class="docutils literal"><span class="pre">123106610</span></code>.</p>
+<p>Characteristics of the algorithm:</p>
+<ul class="simple">
+<li>No floating point operations</li>
+<li>Mostly 8-byte memory access</li>
+<li>A large number of integer divide by 10 and modulus 10 operations</li>
+</ul>
+<p>Hardware:</p>
+<div class="line-block">
+<div class="line">CPU: Intel(R) Core(TM)2 Quad, Q6600  &#64; 2.40GHz</div>
+<div class="line">GPU: AMD Radeon R9 290 (Hawaii)</div>
+</div>
+<div class="section" id="python">
+<h2>Python<a class="headerlink" href="#python" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="cpython">
+<h3>CPython<a class="headerlink" href="#cpython" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none"><div class="highlight"><pre>l = 0
+for i in range(0xffffff):
+  l += len(&#39;{}&#39;.format(i))
+print l
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>$ \time -f&quot;%e&quot; python silly.py
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>9.42s
+</pre></div>
+</div>
+<p>I think it&#8217;s pretty remarkable that an interpreted language can do string
+formatting with integer conversion and count the characters of 16,777,215 values
+in 9.42 seconds.</p>
+</div>
+<div class="section" id="cython">
+<h3>Cython<a class="headerlink" href="#cython" title="Permalink to this headline">¶</a></h3>
+<p>Cython is a Python compiler.</p>
+<p>With no changes to the script:</p>
+<div class="highlight-none"><div class="highlight"><pre>$ sudo apt-get install cython
+$ cp silly.py silly_cython.py
+$ cython -o silly_cython.c silly_cython.py
+$ gcc -o silly_cython.so -shared -fPIC -I/usr/include/python2.7 silly_cython.c -lpython2.7
+$ \time -f&quot;%e&quot; python -c &quot;import silly_cython&quot;
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>10.16s
+</pre></div>
+</div>
+<p>No improvement. Let&#8217;s try to add type annotations:</p>
+<div class="highlight-none"><div class="highlight"><pre>cdef int l
+cdef int i
+l = 0
+for i in range(0xffffff):
+  l += len(&#39;{}&#39;.format(i))
+print l
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>$ mv silly_cython.py silly_cython.pyx
+$ cython -o silly_cython.c silly_cython.pyx
+$ gcc -o silly_cython.so -shared -fPIC -I/usr/include/python2.7 silly_cython.c -lpython2.7
+$ \time -f&quot;%e&quot; python -c &quot;import silly_cython&quot;
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>5.20s
+</pre></div>
+</div>
+<p>A 1.8x speedup at the cost of some added complexity.</p>
+</div>
+<div class="section" id="pypy">
+<h3>PyPy<a class="headerlink" href="#pypy" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none"><div class="highlight"><pre>$ sudo apt-get install pypy
+$ \time -f&quot;%e&quot; pypy silly.py
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>2.88s
+</pre></div>
+</div>
+<p>Virtually the same speed as the plain C version. Wow.</p>
+</div>
+</div>
+<div class="section" id="c">
+<h2>C<a class="headerlink" href="#c" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none"><div class="highlight"><pre>#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+
+void main() {
+    char s[16];
+    int l = 0;
+    for (int i = 0; i &lt; 0xffffff; ++i) {
+      sprintf(s, &quot;%d&quot;, i);
+      l += strlen(s);
+    }
+    printf(&quot;%d\n&quot;, l);
+}
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>$ gcc -o silly_c -O3 -std=c99 silly_c.c
+$ \time -f&quot;%e&quot; ./silly_c
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>2.66s
+</pre></div>
+</div>
+<p>3.54x of the plain Python version. 1.95x of the Cython version.</p>
+</div>
+<div class="section" id="java">
+<h2>Java<a class="headerlink" href="#java" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-none"><div class="highlight"><pre>public class Silly {
+  private static int l = 0;
+  public static void main(String[] arg) {
+    for (int i = 0; i &lt; 0xffffff; i++) {
+      l += String.format(&quot;%d&quot;, i).length();
+    }
+    System.out.printf(&quot;%d%n&quot;, l);
+  }
+}
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>$ sudo apt-get install openjdk-7-jdk
+$ javac Silly.java
+$ \time -f&quot;%e&quot; java Silly
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>14.20s
+</pre></div>
+</div>
+<p>Slower than Python even though it&#8217;s compiled.</p>
+</div>
+<div class="section" id="id1">
+<h2>C++<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="std">
+<h3>std<a class="headerlink" href="#std" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none"><div class="highlight"><pre>#include &lt;iostream&gt;
+#include &lt;string&gt;
+#include &lt;sstream&gt;
+
+using namespace std;
+
+int main(void) {
+  int l = 0;
+  for (int i = 0; i &lt; 0xffffff; ++i) {
+    stringstream s;
+    s &lt;&lt; i;
+    l += s.str().length();
+  }
+  cout &lt;&lt; l &lt;&lt; endl;
+  return 0;
+}
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>$ g++ -O3 -o silly1_cpp silly.cpp
+$ \time -f&quot;%e&quot; ./silly1_cpp
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>15.58s
+</pre></div>
+</div>
+<p>The std based implementation that seemed most natural to me is slower than Java.</p>
+<p>Moving the stringstream object creation outside the loop, and clearing it in the
+loop:</p>
+<div class="highlight-none"><div class="highlight"><pre>stringstream s;
+for (int i = 0; i &lt; 0xffffff; ++i) {
+  s.str(&quot;&quot;);
+  s &lt;&lt; i;
+  f += s.str().length();
+}
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>$ g++ -O3 -o silly2_cpp silly2.cpp
+$ \time -f&quot;%e&quot; ./silly2_cpp
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>3.43s
+</pre></div>
+</div>
+<p>Approaching the C version. So instantiating a stringstream is very expensive.</p>
+</div>
+<div class="section" id="boost-format">
+<h3>boost::format<a class="headerlink" href="#boost-format" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none"><div class="highlight"><pre>#include &lt;iostream&gt;
+#include &lt;boost/format.hpp&gt;
+
+using namespace std;
+using namespace boost;
+
+int main(void) {
+  float f = 0.0f;
+  for (int i = 0; i &lt; 0xffffff; ++i) {
+    f += str(format(&quot;%1%&quot;) % i).length();
+  }
+  cout &lt;&lt; f &lt;&lt; endl;
+  return 0;
+}
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>$ g++ -O3 -o silly_boost silly_boost.cpp
+$ \time -f&quot;%e&quot; ./silly_boost
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>18.47s
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">boost::format()</span></code> is even more expensive than the <code class="docutils literal"><span class="pre">std::stringstream</span></code>
+based version with instantiation in the inner loop.</p>
+</div>
+</div>
+<div class="section" id="go">
+<h2>Go<a class="headerlink" href="#go" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="plain-serial">
+<h3>Plain serial<a class="headerlink" href="#plain-serial" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none"><div class="highlight"><pre>package main
+
+import &quot;fmt&quot;
+
+func main() {
+  l := 0
+  for i := 0; i &lt; 0xffffff; i++ {
+    l += len(fmt.Sprintf(&quot;%d&quot;, i))
+  }
+  fmt.Println(l)
+}
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>$ \time -f&quot;%e&quot; go run silly.go
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>10.96s
+</pre></div>
+</div>
+<p>Somewhat slow, considering that it&#8217;s a compiled language.</p>
+</div>
+<div class="section" id="concurrent-with-workers-running-in-parallel">
+<h3>Concurrent, with workers running in parallel<a class="headerlink" href="#concurrent-with-workers-running-in-parallel" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none"><div class="highlight"><pre>package main
+
+import (
+  &quot;fmt&quot;
+  &quot;sync&quot;
+  &quot;runtime&quot;
+)
+
+func main() {
+  cores := 4
+
+  runtime.GOMAXPROCS(cores)
+
+  in := make(chan int, 100)
+  out := make(chan int, 100)
+  wg := &amp;sync.WaitGroup{}
+
+  for i := 0; i &lt; cores; i++ {
+    wg.Add(1)
+    go worker(wg, in, out)
+  }
+
+  go monitor_workers(wg, out)
+  go gen(in)
+
+  s := 0
+  for i := range out {
+    s += i
+  }
+  fmt.Println(s)
+}
+
+func worker(wg *sync.WaitGroup, in &lt;- chan int, out chan &lt;- int) {
+  for i := range in {
+    out &lt;- len(fmt.Sprintf(&quot;%d&quot;, i))
+  }
+  wg.Done()
+}
+
+func monitor_workers(wg *sync.WaitGroup, out chan int) {
+  wg.Wait()
+  close(out)
+}
+
+func gen(in chan int) {
+  for i := 0; i &lt; 0xffffff; i++ {
+    in &lt;- i
+  }
+  close(in)
+}
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>$ \time -f&quot;%e&quot; go run silly2.go
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>26.19s
+</pre></div>
+</div>
+<p>Almost 3 times as slow as the plain serial version. Presumably, the work items
+are too small to weigh up for cross-process transfers for the in and out
+channels.</p>
+</div>
+</div>
+<div class="section" id="pyopencl">
+<h2>PyOpenCL<a class="headerlink" href="#pyopencl" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="cpu">
+<h3>CPU<a class="headerlink" href="#cpu" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none"><div class="highlight"><pre>#!/usr/bin/env python
+
+import pyopencl as cl
+import time
+import ctypes
+import struct
+
+ctx = cl.create_some_context()
+queue = cl.CommandQueue(ctx)
+prg = cl.Program(ctx, &quot;&quot;&quot;
+
+#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+
+typedef unsigned int u32;
+
+u32 strlen(const char *str)
+{
+  const char *s;
+  for (s = str; *s; ++s) {}
+  return(s - str);
+}
+
+void reverse(char s[])
+{
+  u32 i, j;
+  char c;
+
+  for (i = 0, j = strlen(s)-1; i&lt;j; i++, j--) {
+    c = s[i];
+    s[i] = s[j];
+    s[j] = c;
+  }
+}
+
+void itoa(char s[], u32 n)
+{
+  u32 i = 0;
+  do {
+    s[i++] = n % 10 + &#39;0&#39;;
+  } while ((n /= 10) &gt; 0);
+  s[i] = 0;
+  reverse(s);
+}
+
+u32 length_of_number(u32 n)
+{
+  char s[16];
+  itoa(s, n);
+  return strlen(s);
+}
+
+__kernel void sum(__global u32* global_sum)
+{
+  u32 gid = get_global_id(0);
+  atomic_add(global_sum, length_of_number(gid));
+}
+
+&quot;&quot;&quot;).build()
+
+start_time = time.time()
+
+# Create 32-bit destination buffer on device and initialize it to zero.
+result_d = cl.Buffer(ctx, cl.mem_flags.WRITE_ONLY, 4)
+cl.enqueue_fill_buffer(queue, result_d, ctypes.create_string_buffer(1), 0, 4, wait_for=True)
+
+# Launch the kernel.
+prg.sum(queue, (0xffffff, ), None, result_d)
+
+# Create the host result buffer and copy the device result there.
+result_h = ctypes.create_string_buffer(4)
+cl.enqueue_copy(queue, result_h, result_d)
+
+# Convert the host result buffer to a 32-bit unsigned int and print it.
+print struct.unpack(&#39;I&#39;, result_h)[0]
+
+print int((time.time() - start_time) * 1000), &#39;ms&#39;
+</pre></div>
+</div>
+<p>An OpenCL solution causes a big jump in complexity, primarily because OpenCL
+does not include <code class="docutils literal"><span class="pre">sprintf()</span></code> or <code class="docutils literal"><span class="pre">strlen()</span></code>. I copied an <code class="docutils literal"><span class="pre">itoa()</span></code> and
+<code class="docutils literal"><span class="pre">strlen()</span></code> function from the web and implemented the function with those. This
+is cheating a bit since <code class="docutils literal"><span class="pre">itoa()</span></code> does not have to interpret a format string
+like <code class="docutils literal"><span class="pre">sprintf()</span></code> does. The implementation is naive in that it updates a single
+global value with an <code class="docutils literal"><span class="pre">atomic_add()</span></code> in each of the 16,777,215 work items. Each
+add causes a global memory round-trip for which the thread must wait, and uses
+up almost all the time in the algorithm.</p>
+<div class="highlight-none"><div class="highlight"><pre>$ \time -f&quot;%e&quot; ./silly_cl.py
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>1891 ms
+6.79s
+</pre></div>
+</div>
+<p>There is a rather large overhead in creating the OpenCL context so, if that is
+included in the result, running this algorithm on the CPU is not much faster
+than the Python version. However, the context creation will typically be
+amortized over many kernel calls in the same app, so it can be disregarded, in
+which case the algorithm runs at 1.89s, faster than any of the serial solutions.</p>
+</div>
+<div class="section" id="gpu">
+<h3>GPU<a class="headerlink" href="#gpu" title="Permalink to this headline">¶</a></h3>
+<p>The OpenCL program runs unmodified on GPUs.</p>
+<div class="highlight-none"><div class="highlight"><pre>$ \time -f&quot;%e&quot; ./silly_cl.py
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>31 ms
+2.38s
+</pre></div>
+</div>
+<p>86x of the plain C version running on the CPU. An excellent result, especially
+considering that this is a bad implementation (based on <code class="docutils literal"><span class="pre">atomic_add()</span></code>) on an
+algorithm that is a poor fit for GPUs, which are optimized for 32-bit floating
+point operations.</p>
+</div>
+<div class="section" id="optimized-gpu">
+<h3>Optimized GPU<a class="headerlink" href="#optimized-gpu" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-none"><div class="highlight"><pre>#!/usr/bin/env python
+
+import pyopencl as cl
+import time
+import ctypes
+import struct
+
+ctx = cl.create_some_context()
+queue = cl.CommandQueue(ctx)
+prg = cl.Program(ctx, &quot;&quot;&quot;
+
+#pragma OPENCL EXTENSION cl_khr_global_int32_base_atomics : enable
+
+typedef unsigned int u32;
+
+u32 length_of_number(u32 n)
+{
+  u32 i = 0;
+  do {
+    ++i;
+  } while ((n /= 10) &gt; 0);
+  return i;
+}
+
+__kernel void sum(__global u32* global_sum)
+{
+  u32 gid = get_global_id(0);
+  atomic_add(global_sum, length_of_number(gid));
+}
+
+&quot;&quot;&quot;).build()
+
+start_time = time.time()
+
+# Create 32-bit destination buffer on device and initialize it to zero.
+result_d = cl.Buffer(ctx, cl.mem_flags.WRITE_ONLY, 4)
+cl.enqueue_fill_buffer(queue, result_d, ctypes.create_string_buffer(1), 0, 4, wait_for=True)
+
+# Launch the kernel.
+prg.sum(queue, (0xffffff, ), None, result_d)
+
+# Create the host result buffer and copy the device result there.
+result_h = ctypes.create_string_buffer(4)
+cl.enqueue_copy(queue, result_h, result_d)
+
+# Convert the host result buffer to a 32-bit unsigned int and print it.
+print struct.unpack(&#39;I&#39;, result_h)[0]
+
+print int((time.time() - start_time) * 1000), &#39;ms&#39;
+</pre></div>
+</div>
+<p>It is not necessary to store the digits and reverse them since the result is not
+printed. Instead, can just directly count the number of digits that would be
+stored. That allows the expensive modulus operation to be removed as well.</p>
+<div class="highlight-none"><div class="highlight"><pre>$ python silly_cl_opt.py
+</pre></div>
+</div>
+<div class="highlight-none"><div class="highlight"><pre>25 ms
+</pre></div>
+</div>
+<p>Even though most of the logic is removed, only went from 31ms to 25ms, showing
+that the algorithm is being held up by the <code class="docutils literal"><span class="pre">atomic_add()</span></code>.</p>
+<p>&lt;TODO&gt; Use a reduction to sum up the values.</p>
+</div>
+</div>
+<div class="section" id="cuda">
+<h2>CUDA<a class="headerlink" href="#cuda" title="Permalink to this headline">¶</a></h2>
+<p>&lt;TODO&gt;</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+
+  
+
+<!-- begin htmlcommentbox.com -->
+ <div id="HCB_comment_box"><a href="http://www.htmlcommentbox.com">HTML Comment Box</a> is loading comments...</div>
+ <link rel="stylesheet" type="text/css" href="http://www.htmlcommentbox.com/static/skins/simple/shady.zip" />
+ <script type="text/javascript" language="javascript" id="hcb"> /*<!--*/ (function(){s=document.createElement("script");
+s.setAttribute("type","text/javascript");
+s.setAttribute("src", "http://www.htmlcommentbox.com/jread?page="+escape((typeof hcb_user !== "undefined" && hcb_user.PAGE)||(""+window.location)).replace("+","%2B")+"&mod=%241%24wq1rdBcg%24.kGkaTzWdQN3PfIcds/kK1"+"&opts=398&num=10");
+if (typeof s!="undefined") document.getElementsByTagName("head")[0].appendChild(s);
+})();
+ /*-->*/ </script>
+<!-- end htmlcommentbox.com -->
+
+  
+
+
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../antialias/index.html" title="Anti-aliasing technologies"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../wd_mybook/index.html" title="Replacing disk on WD MyBook"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">dahlsys.com</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index_misc.html" >Misc</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2010, dahlsys.com.
+    Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.3.6.Theme by <a href="http://github.com/vkvn">vkvn</a>
+    </div>
+  </body>
+</html>

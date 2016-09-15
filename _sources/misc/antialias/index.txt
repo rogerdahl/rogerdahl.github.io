@@ -1,0 +1,367 @@
+:technologies: NVIDIA|ATI|Graphics|GeForce|Fermi|Radeon
+
+Anti-aliasing technologies
+==========================
+
+Definitions
+-----------
+
+\
+
+=========== ====================================================================
+.. _`a`:    **Aliasing**
+
+            Aliasing is any artifact that appears when lowering the
+            resolution of an image. These artifacts typically appear as jagged
+            and flickering lines and edges.
+
+.. _`ta`:   **Temporal aliasing**
+
+            Temporal aliasing refers specifically to the flickering or
+            shimmering effects that `aliasing <#a>`_ causes when objects
+            move in a scene.
+
+_`AA`       **Anti-aliasing**
+
+            Anti-aliasing is any technology that is designed to minimize
+            `aliasing <#a>`_ and `temporal aliasing <#ta>`_ artifcats.
+
+            Anti-aliasing is relevant in a 3D graphics rendering pipeline
+            because part of the pipeline handles graphics as geometry of
+            essentially infinite resolution. In a late stage in the pipeline,
+            known as ROP, Raster Operations, the color of each pixel on the
+            screen is determined based on the geometry. It is in or after this
+            stage that any anti-aliasing is performed.
+
+.. _`s`:    **Sampling**
+
+            *Sampling* is a term borrowed from signal processing. Sampling is
+            the process of selecting a single value from a continuously varying
+            series of values. The result of a sampling is a single value called
+            a sample. In some instances, the term is used somewhat loosely.
+
+            In 3D graphics, a sample describes a point-sized (infinitely small)
+            area of geometry. When rendering 3D graphics, the challenge is to
+            use the point sized samples to color pixels, which have a physical
+            area. The more samples are available from the various resources
+            that make up a 3D scene, the more accurately the pixels can be
+            colored.
+=========== ====================================================================
+
+\
+
+.. _`aa_ms`:
+
+Anti-aliasing based on multi-sampling
+-------------------------------------
+
+Overview of AA methods that work by calculating extra samples and then using
+those to more accurately select the color of each pixel.
+
+\
+
+=========== ====================================================================
+_`FSAA`     **Full Scene Anti-aliasing**
+
+            Describes any AA technology that works on the whole screen. This is
+            as opposed techniques that work on parts of the screen, such as
+            `TrAA`_.
+
+_`SSAA`     **Super-sampling Anti-aliasing**
+
+            This is the type of AA that creates the best image quality. It is
+            "pure" AA with no compromises. All the other AA technologies exist
+            because SSAA is very slow.
+
+            SSAA works by calculating multiple `samples <#s>`_ for each actual
+            pixel on the screen and then averaging those samples to determine
+            the color for each pixel. The ratio of samples to pixels is often
+            described by a number put before the acronym. For instance, 8xSSAA
+            describes that each pixel on screen will be the avarage of 8
+            samples.
+
+            When there is no multi-sampling, the color of each pixel is
+            determined based on a single sample from the center of the pixel.
+            When multiple samples are calculated per pixel, those samples are
+            distributed across the pixel in patterns designed to maximize the AA
+            effect. In particular, this means that the samples are not evenly
+            distributed and do not line up horizontally or vertically.
+
+            SSAA is slow because the pixel rendering stage of the rendering
+            pipeline must do the same amount of work as if the screen resolution
+            was many times the resolution of what it is. For instance, with a
+            resolution of 1920x1080 and 8xSSAA, the hardware must calculate the
+            same amount of pixels as if the resolution was 7680x2160.
+
+_`OGSSAA`   **Ordered Grid Super-sampling Anti-aliasing** (OGSS)
+
+            Same as `SSAA`_.
+
+_`RGSSAA`   **Regular Grid Super-sampling Anti-aliasing** (RGSS)
+
+            Same as `SSAA`_.
+
+            Note: RGSSAA has two separate meanings. See the entry below.
+
+RGSSAA      **Rotated Grid Super-sampling Anti-aliasing**
+
+            Similar to `SSAA`_. The difference is that instead of the sample
+            grid being along horizontal and vertical axis, the grid is rotated
+            to a fixed angle. This causes better anti-aliasing of edges that are
+            almost horizontal or vertical.
+
+            Note: RGSSAA has two separate meanings. See the entry above.
+
+_`SGSSAA`   **Sparse Grid Super-sampling Anti-aliasing**
+
+            Similar to `SSAA`_. This type of `AA`_ is the first in a series of
+            `AA`_ types that represent a compromise designed to trade image
+            quality for performance.
+
+            The sampling pattern of plain `SSAA`_ is called *Regular Grid* or
+            *Ordered Grid*. It can be pictured as a grid that has higher
+            resolution than the pixel grid. Where `SSAA`_ samples in each square
+            in that grid, SGSSAA samples in only some of the squares.
+
+_`JGSSAA`   **Jittered Grid Super-sampling Anti-aliasing**
+
+            Similar to `SSAA`_. The difference is that sample locations are
+            altered so that they no longer exactly follow the grid that plain
+            `SSAA`_ uses. This helps hide regularly occuring artifacts.
+
+\           **Stochastic Super-sampling Anti-aliasing**
+
+            Similar to `JGSSAA`_. The difference is that the sample positions
+            are fully random instead of being just randomly offset from the grid
+            as in `JGSSAA`_. The white noise that this introduces helps hide
+            rendering artifacts.
+
+_`MSAA`     **Multi-sampling Anti-aliasing**
+
+            In a pixel pipeline, the final color of each pixel on the screen is
+            determined by taking into account samples from Shader, Texture,
+            Color, Depth and Stencil resources. Of these, Shader samples are by
+            far the most expensive (slow to calculate) because the source of
+            these samples are calculations done in software by an arbitrarily
+            complex program that runs on the graphics card, called a Shader.
+            Texture samples are also somewhat expensive. So, while `SSAA`_
+            retrieves the same amount of samples from each resource, MSAA
+            lessens the load on Shader and Texture resources by only retrieving
+            a single Shader, Texture and Color sample for each pixel regardless
+            of how many Depth and Stencil samples are retrieved for each pixel.
+
+            The result is that, compared to `SSAA`_, MSAA runs much faster but
+            it smoothes only the edges of polygons. It does not help for the
+            internal areas of polygons as those are based on samples from
+            Shaders and Textures.
+
+_`CSAA`     **Coverage Sampling Anti-aliasing**
+
+            Extends `MSAA`_. It adds a type of samples called Coverage samples.
+            The grid of Coverage samples is of higher resolution than the grid
+            of samples used by `MSAA`_ and provides a high resolution yes/no
+            indication as to if a part of a given pixel is covered by a polygon.
+
+            By using this high resolution grid of samples together with the
+            other samples already handled by `MSAA`_, CSAA is able to more
+            accurately determine how to color each individual pixel.
+
+            Coverage sampling is less expensive than it may first seem because
+            the yes/no indication can be encoded in a single bit. This means
+            that Coverage samples use much less memory and memory bandwith than
+            `MSAA`_ samples.
+
+_`TrAA`     **Transparency Anti-aliasing**
+
+            Describes `AA`_ types such as `TMAA`_ and `TSAA`_ that are designed
+            to handle flat pictures with see-through areas (Billboards, Decals
+            or Point Sprites in 3D graphics lingo) differently from real 3D
+            models.
+
+            In a 3D scene, there are two main ways of displaying items that have
+            see-through areas, such as a tree. If the tree can be seen from all
+            angles, a 3D model is used. But if the tree can be seen only from
+            one angle or from far away, one may be able to get away with
+            displaying just a flat picture of a tree in that location, thereby
+            rendering the scene faster. TrAA applies to such flat pictures.
+
+            TrAA exists because flat pictures are not handled well by `FSAA`_
+            methods other than `SSAA`_. This is because flat pictures do not
+            have any geometry associated with them and `AA`_ methods other than
+            `SSAA`_ derive most of their samples from geometry.
+
+_`TMAA`     **Transparency Multi-sampling Anti-aliasing**
+
+            A type of `TrAA`_. It works by applying `MSAA`_ to flat pictures
+            while leaving the real 3D models in the scene to be handled by other
+            `AA`_ methods or by `MSAA`_ with a different number of samples.
+
+_`TSAA`     **Transparency Super-sampling Anti-aliasing**
+
+            Like `TMAA`_, but uses `SSAA`_ instead of `MSAA`_ for the flat
+            pictures.
+
+_`AdAA`     **Adaptive Anti-aliasing**
+
+            A combination of `TMAA`_ and `TSAA`_.
+
+_`HRAA`     **High-Resolution Anti-aliasing**
+
+            This method was introduced in GeForce3 in 2001 and was perhaps
+            NVIDIA's first stab at improving the performance of basic `SSAA`_.
+            In this method, the two sampling locations of 2x\ `SSAA`_ are
+            adjusted so that one sample is in the upper left corner of the pixel
+            and the other is in the center. Thus, when looking at a grid of
+            pixels, each pixel ends up with a sample in the center and one in
+            each corner, for a total of 5 samples. HRAA then uses all 5 samples
+            to determine the color of the pixel. In other words, each corner
+            sample is reused by all of the 4 pixels that share that corner. The
+            technique gives quality similar to 4x\ `SSAA`_ with performance like
+            2x\ `SSAA`_.
+
+=========== ====================================================================
+
+\
+
+.. _`aa_pp`:
+
+Anti-aliasing based on post-processing
+--------------------------------------
+
+Overview of AA methods that work by post-processing. As opposed to the
+`multi-sampling AA methods <#anti-aliasing-based-on-multi-sampling>`_, these
+methods work by adding a final step in which an algorithm examines the rendered
+image and adjusts pixels to reduce aliasing artifacts. In a pure post-processing
+based method, no extra samples are calculated. All post-processing based methods
+can be combined with multi-sampling methods to leverage the strengths of both.
+
+Post-processing based AA has become possible due to the increase in computing
+capabilities in modern GPUs.
+
+\
+
+=========== ====================================================================
+_`MLAA`     **Morphological Anti-aliasing**
+
+            The first AA method based on post processing. Invented by Intel and
+            adopted by ATI for use on Radeon graphics cards.
+
+            Algorithm:
+
+            1. Find discontinuities between pixels in a given image.
+            #. Identify predefined patterns.
+            #. Blend colors in the neighborhood of these patterns.
+
+
+_`FXAA`     **Fast Approximate Anti-aliasing**
+
+            NVIDIA's answer to `MLAA`_. The general consensus is that FXAA does
+            not look as good as `MLAA`_, but that it has less impact on
+            performance (3-5%).
+
+            FXAA does not directly address `temporal aliasing`_. It may also not
+            anti-alias all edges in a scene.
+
+
+_`TXAA`     **Temporal Approximate Anti-aliasing**
+
+            TXAA is designed to minimize both regular `aliasing <#a>`_ and
+            `temporal aliasing <#ta>`_. In motion, TXAA approaches the quality
+            of AA algorithms used for CG graphics in the movie industry.
+
+            Algorithm:
+
+            NVIDIA has not disclosed the details of the TXAA algorithm. They
+            describe it as a combination of hardware anti-aliasing (traditional
+            multi-sampling methods), a custom anti-aliasing resolve, and a
+            temporal filter.
+
+            As of summer 2013, TXAA is only supported on Kepler-based GeForce
+            cards, such as the GTX 600 Series.
+
+            * 2xTXAA looks about the same as 8x\ `MSAA`_ and performs about the
+              same as 2x\ `MSAA`_.
+
+            * 4xTXAA looks better than 8x\ `MSAA`_ and performs about the same
+              as 4x\ `MSAA`_.
+
+
+_`SMAA`     **Enhanced Subpixel Morphological Anti-aliasing**
+
+            Combines `MLAA`_ with `MSAA`_ or `SSAA`_ and adds a number of
+            features that improves image quality, such as:
+
+            * More reliable edge detection.
+            * Better preservation of sharp geometric features and diagonal lines.
+            * Accelerated and more accurate pattern classification.
+
+            SMAA is an open source project and free software is available that
+            will add SMAA to any game.
+=========== ====================================================================
+
+\
+
+Anti-aliasing modes
+-------------------
+
+In `multi-sampling AA methods <#anti-aliasing-based-on-multi-sampling>`_,
+multiple samples are calculated for each pixel on the screen. This table lists
+the resources from which samples are made and the number of samples, per pixel,
+that are calculated for each resource.
+
+- **S**: Supersampling. Modes ending with *S* include super-sampling. They also
+  use Rotated Grid `MSAA`_.
+
+- **Q**: Quality. Modes ending with *Q* double the number of MSAA samples as
+  compared to their regular counterparts.
+
+- **G**: Gaussian. Applies to TrAA modes.
+
+\
+
+================= ========== ========== ========== ========== ========== ======== =================================
+Mode              Samples                                                         Alternate name
+----------------- --------------------------------------------------------------- ---------------------------------
+\                 Shader     Texture    Color      Depth      Stencil    Coverage
+================= ========== ========== ========== ========== ========== ======== =================================
+*No AA*           1          1          1          1          1          0
+2xSSAA            2          2          2          2          2          0
+4xSSAA            4          4          4          4          4          0
+8xSSAA            8          8          8          8          8          0
+2xMSAA            1          1          2          2          2          0        2x
+4xMSAA            1          1          4          4          4          0        4x
+4xMSAA + 2xSSAA   2          2          4          4          4          0        4xS
+8xMSAA            1          1          8          8          8          0
+16xMSAA           1          1          16         16         16         0
+4xCSAA            1          1          4          4          4          4
+8xCSAA            1          1          4          4          4          8
+16xCSAA           1          1          4          4          4          16
+32xCSAA           1          1          \          \          \          32
+4xMSAA + 8xCSAA   1          1          4          4          4          8        8x
+8xMSAA + 2xSSAA   2          2          8          8          8          0        8xS
+8xMSAA + 8xCSAA   1          1          8          8          8          8        8xQ
+4xMSAA + 16xCSAA  1          1          4          4          4          16       16x
+16xMSAA + 4xSSAA  4          4          16         16         16         0        16xS
+8xMSAA + 16xCSAA  1          1          8          8          8          16       16xQ
+8xMSAA + 32xCSAA  1          1          8          8          8          32       32x
+32xMSAA + 4xSSAA  4          4          32         32         32         0        32xS
+4xMSAA + 4xTrAA   ?          \          \          \          \          \
+4xMSAA + 2xTrAA   ?          \          \          \          \          \
+OGSSAA + RGMSAA   ?          \          \          \          \          \
+\                                                                                 4xG
+\                                                                                 2xQ
+\                                                                                 6xS
+================= ========== ========== ========== ========== ========== ======== =================================
+
+\
+
+.. Note::
+  Many of the terms are coined by NVIDIA and describes AA modes implemented in
+  their hardware. Some terms are coined by ATI and some are generic.
+
+.. Note::
+  The sample counts for the `CSAA`_ modes are inflated due to NVIDIA counting
+  Multi-samples twice, once as Multi-samples and once as Coverage samples.
+
+.. Note::
+  The sample counts in the more esoteric AA combinations have not been verified.

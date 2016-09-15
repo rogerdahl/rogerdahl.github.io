@@ -1,0 +1,657 @@
+:download: Windows 64#Multismart_exe_64.7z|Source#Multismart_src.7z
+
+:technologies: C++|MFC Doc/View|Boost::RegEx
+
+
+.. note:: This application is outdated -- it does not support the "partxx" format
+ for RAR archives and it does not support the PAR2 file format.
+
+Multismart -- Multipart Archive Tool
+====================================
+
+Multismart is primarily a tool that groups files. Instead of displaying long
+lists of related files like you see in a regular file view, Multismart groups
+the files and displays the groups along with statistics about the groups.
+
+Multismart integrates the display of disk files, RAR archives, PAR files, SFV
+files, Descript.ion files and calculated information to show you a complete
+overview of the state of all your archives.
+
+Quick Start
+-----------
+
+This application should be fairly intuitive, but there are some details you need
+to know before you start. I'll try to keep this short. Read the Features in
+Detail section below if you would like to know more.
+
+Installing and Starting the Application
+```````````````````````````````````````
+
+Starting the application is as easy as unzipping the file and starting the
+application. No installation is necessary. The application is a single
+executable file. It touches only the folders you monitor and it creates one key
+in the registry where it stores your settings.
+
+Monitoring Folders
+``````````````````
+
+After you point Multismart to a folder that contains multipart archives, the
+application will monitor that folder. You will see one or more lines of text in
+Multismart's main window. Each line is an "item". An item can be a real file
+that exists on disk, a file that Multismart learned about by reading another
+file or a piece of calculated information. The "Show existing and missing" check
+boxes turn on display of existing files and missing files. When both of these
+are turned off you see only archive items. Each archive item displays statistics
+about one distinct archive that exists in part or in whole on your hard drive.
+It is in this mode that Multismart is most useful. When you turn on display of
+existing and or missing files you clutter up the display without receiving much
+more information.
+
+Interpreting the display
+````````````````````````
+
+For this short description, I will focus on archive items. An archive item is in
+one of three states marked by the names "archive", "archive pending" and
+"archive guess" in the Type column. When Multismart first reads the monitored
+folder, it only finds filenames and file sizes. Multismart is able to make a
+number of educated guesses about your archives from this information alone, but
+they are still only guesses. In particular, there may be undetected errors in
+the archive parts and the filenames may be misleading as to which archives the
+parts belong to. If checksum information exists for an archive in the form of
+PAR or SFV files, the archive item is in the state of "archive pending" until
+Multismart has verified the checksums of all the parts, after which the state
+changes to "archive". If no checksum information exists, the archive item is
+displayed as "archive guess" and left at that.
+
+The quickest way to describe how to interpret the information that Multismart
+displays is probably to use an example. Imagine that you're downloading a
+multipart RAR archive called BigArchive that consists of 5 parts (rar, r00, r01,
+r02, r03). Here's what happens as you get the parts in random order:
+
+Lets say the first archive part you get is BigArchive.r02. Seeing this file
+alone, Multismart knows there's an archive called BigArchive that has at least 4
+parts (rar, r00, r01, r02). It will then display an archive guess item saying
+"size ok, have 1 of 4 or more parts". (**archive guess, size ok, 1 / 4+**). It's
+the best it can do at this point.
+
+Adding BigArchive.r03: The last file in an archive is almost always shorter than
+the other files. When Multismart sees that this file is shorter than
+BigArchive.r02, it makes a guess that r03 is the last part and alters the
+archive guess item to say "size ok, have 2 of 5 parts". (**archive guess, size
+ok, 2 / 5**).
+
+Adding BigArchive.rar but it is truncated by a download error: Multismart sees
+that the new part is shorter than expected and adds a size error to the display.
+(**archive guess, size error: 1, 2 / 5**). As you see, the part with the size
+error doesn't count towards the number of parts.
+
+Adding a parity file for the archive, say BigArchive.p02: Multismart no longer
+has to make guesses on the archive, and it will display an archive pending item
+until it is done calculating checksums and verifying all files in the archive.
+It will then display an archive item saying that two files are missing or have
+checksum errors and that one of those errors is being covered by a parity file.
+(**archive, md5 error: 1, 3 / 5 (1 / 1)**). Read about parity archives below if
+you don't undertand this. The number in parentheses shows that 1 out of 1
+available parity files were used for coming up with the total of 3 / 5 parts
+present.
+
+Adding another parity archive and archive part, say BigArchive.p03 and
+BigArchive.r00: The archive is now complete because the two parity archives can
+be used for fixing one truncated file (BigArchive.rar) and one missing file
+(BigArchive.r01). This is displayed as **archive, complete, 5 / 5 (2 / 2)**.
+Multismart will then automatically fix the archive the next time you click the
+par button. After this, the par files are deleted, and the archive displays
+simply as **archive, complete, 5 / 5**.
+
+Caution and Tips
+----------------
+
+Like all powerful tools, this one can do some serious damage if you don't use it
+right. Tips for the beginner are:
+
+When performing Delete operations, carefully look at the list of actual files in
+the confirmation dialog to see what you are deleting. If you are unsure how a
+specific file ended up in the delete list, try selecting items one at a time and
+click Delete to see which of them imply deleting the file in question.
+
+If you ever wonder how Multismart came up with a specific piece of information,
+turning on display of existing and missing files may help.
+
+If you don't understand how a specific combination of files resulted in what is
+being displayed, you can point Multismart to an empty folder, and move files in
+and out of that folder one at a time while refreshing the display after each
+move. You'll then see exactly what's going on.
+
+What is a Parity Archive?
+-------------------------
+
+Parity archives are files with an extension of .Pxx (P01, P02 etc). They protect
+a set of files by storing redundant information derived from the files in the
+set. The redundant information can be used to restore broken and missing files
+in the protected set of files. Think of a parity archive as a "wildcard" file --
+it will replace any one broken file in the set. Any two parity archives will
+replace any two broken files and so on.
+
+How does it work? Consider this simple example: Say you have 4 files, each
+storing a single number. Let's choose the random numbers 3, 4, 9 and 5. You now
+create a file containing the sum of all the numbers, which is 21. This file is
+the "parity archive". If you now lose a random file of the 4 original files, say
+file 3, you can find the lost number by taking the number stored in the parity
+archive and subtracting the numbers stored in all the files you do have: 21 - 3
+- 4 - 5 = 9.
+
+Parity archives let you use any number of random parity files generated for a
+set to fix the same number of random broken files in the set and this makes the
+math very complicated, but you get the idea. Note that because of a mathematical
+weakness in the PAR system there are some combinations of files that can not be
+restored. These combinations are very rare though.
+
+Limitations
+-----------
+
+Only RAR archives are supported. The first archive part must be ".RAR", not
+".EXE".
+
+Multismart assumes that a set of PAR parents cover exactly one archive. It will
+not display information about archives correctly if the archives are covered
+only in part by a PAR set, or one PAR set covers more than one archive.
+
+Multismart relies almost entirely on filenames for grouping files into the
+archives they are part of. So if you, for some weird reason, have files that
+have the exact same names but are parts of different archives, that will confuse
+Multismart.
+
+
+Multismart Features in Detail
+-----------------------------
+
+In the following, I use the terms "PAR/SFV parent" and "PAR/SFV child". A
+PAR/SFV parent is a file with the extension of .SFV, PAR, Pxx or Qxx where xx is
+a number between 00 and 99. The files contain lists of files and corresponding
+checksums. Pxx and Qxx files also contain recovery data -- more about that later.
+A PAR/SFV child is a file that is listed in one of these files. A PAR set is a
+collection of PAR parents that all have the same children and those children.
+
+Monitored folder overview
+`````````````````````````
+
+Without running any additional functions you can check which archives you have,
+how many parts you have and how many parts are missing in each archive, in which
+time period the archive parts were created on disk, if any parts of an archive
+failed MD5/CRC32 (if the archive has a PAR/SFV parent), the size status of each
+archive (if the archive does not have a PAR/SFV parent), Descript.ion
+information for the first existing archive part and which archives have PAR/SFV
+parents.
+
+By turning on "show existing files" you can also read the Descript.ion
+information for each existing part of the archive, check the MD5/CRC32 status
+for each file (if the archive has a PAR/SFV parent), delete individual archive
+parts (for instance those with MD5/CRC32 errors) and see other files you have in
+your monitored folder.
+
+By turning on "show missing files" you will also find details about all PAR/SFV
+children that don't exist in your monitored folder and all files that don't
+exist in the monitored folder or in any PAR/SFV parents but still need to be
+present to complete an archive (gaps).
+
+Details
+```````
+
+Here's a list of the different items you may see and what the information
+displayed in the items mean.
+
+Archive items
+~~~~~~~~~~~~~
+
+Archive items display information about archives. The information is (from left
+to right):
+
+Number of days since a part of this archive was first created, number of days
+since a part of this archive was last created, size of all files that exist on
+disk, estimated size of the complete archive (if the archive is not yet
+complete), number of parts that exist on disk, number of parts in this archive
+(guestimate) and status field (described below).
+
+Status field:
+
+:complete: All the known parts of the archive are present. The number of known
+ parts was found from a PAR/SFV parent, and there are no MD5/CRC32 errors.
+
+:complete?: All the known parts of the archive are present. The number of
+ known parts were found by assuming that the part found on disk that has the
+ highest sequence extension is the last part because it is smaller than the other
+ parts (the last part will almost always be smaller). If the last part found has
+ been truncated by an error, it may not be correct that this archive is complete.
+ MD5/CRC32 has not been calculated, but all the parts have the correct size (the
+ size of the last part has not been checked).
+
+ OR
+
+ A single archive part is present and that archive does not have a part number
+ AND it does not have any parents AND it does not have a size that is a round
+ number (as almost all parts of multipart archives have).
+
+:md5/crc bad: A PAR/SFV parent exists. One or more parts of the archive have
+ MD5/CRC32 errors. "md5 bad" is displayed if there's a PAR parent, and "crc bad"
+ if there's an SFV parent.
+
+:size bad: No PAR/SFV parents exist. One or more parts of the archive do not
+ have the expected size.
+
+:pending: A PAR/SFV parent exists. MD5/CRC32 has not been calculated for one
+ or more of the files. Use the CRC button to run MD5/CRC32 calculations.
+
+:open error: One or more files could not be opened for MD5/CRC32 calculation.
+ They are probably open in another application. Use the MD5/CRC32 button to run
+ MD5/CRC32 calculations later.
+
+:<blank>: One or more parts are missing, but the parts that do exist seem to
+ be ok.
+
+The guestimated numbers may or may not have a "+" behind them. If they don't
+have a "+", that means that the archive has a PAR/SFV parent and so Multismart
+can be reasonably certain that the exact number of parts in the archive is
+known. If there is a "+", there were no PAR/SFV parents and a guess was made
+based on the same logic as described in the "complete?" section above.
+
+Disk items
+~~~~~~~~~~
+
+Disk items represent real files that exist on disk.
+
+Status field:
+
+:crc ok: File exists on disk and has a PAR/SFV parent. The MD5/CRC32 for the
+ disk file has been calculated and corresponds to the one listed in the PAR/SFV
+ parent.
+
+:crc bad: File exists on disk and has a PAR/SFV parent. The MD5/CRC32 for the
+ disk file has been calculated but it does not correspond to the one listed in
+ the PAR/SFV parent
+
+:pending: File exists on disk and has a PAR/SFV parent. The MD5/CRC32 for the
+ disk file has not yet been calculated so it is not known whether the MD5/CRC32
+ is correct or not.
+
+:size ok: File exists on disk but it does not have a PAR/SFV parent. The file
+ is considered to be part of an archive and the size of the file is the same as
+ the size of other parts of the archive.
+
+:size bad: File exists on disk but it does not have a PAR/SFV parent. The file
+ is considered to be part of an archive but the size of the file is not the same
+ as the size of other parts of the archive.
+
+:<blank>: File exists on disk but it does not have a PAR/SFV parent. File is
+ not considered to be part of an archive.
+
+PAR/SFV child items
+~~~~~~~~~~~~~~~~~~~
+
+PAR/SFV child items represent files that are listed in a PAR and/or SFV file
+(parent) but do not exist on disk.
+
+Info1 field:
+
+The name of the PAR/SFV parent the child comes from.
+
+If the same child item exists in both a PAR parent and an SFV parent, the
+information stored in the PAR parent takes precedence because the checksums
+stored in PAR parents are more secure.
+
+Gap items
+~~~~~~~~~
+
+Gap items represents gaps in the logical sequence of archive parts. For
+instance, if a file named BigArchive.r02 exists and no other BigArchive files
+exist, gap items will be created for BigArchive.RAR and BigArchive.r01.
+
+No more information is given about gap items.
+
+
+PAR Resolver
+````````````
+
+Clicking the "PAR" button starts the PAR Resolver which attempts to fix all
+known archives that have errors. The PAR Resolver searches each archive for
+broken files. If it finds any broken files, it searches for healthy PAR parents
+to use for fixing those files. If enough PAR parents are found, an attempt is
+made to fix the archive. If, for any reason at all, the attempt fails, all
+involved files are left exactly as they were. If on the other hand, fixing the
+archive is successful, as verified by thoroughly checking all involved files
+using MD5 checksums, the PAR parents are deleted as they no longer have any
+value.
+
+This function ignores names of files. It works exclusively based on file MD5
+checksums, eliminating the possibility that any error is made because of mangled
+filenames or filename collisions. This approach maximizes the chance that an
+archive is fixed because all relevant files will be used no matter what their
+filenames are. After an archive has been completely fixed, all files in the
+archive are renamed to match the names of the files as they are listed in the
+PAR parents. This maximizes the chance that you will be able to successfully
+extract the archive.
+
+Note: Any file that has not yet been MD5/CRC32'ed is effectively invisible to
+this function. So, to fix as many archives as possible, use this function after
+all files have been MD5/CRC32'ed.
+
+Duplicate Cleanup and Fixing Archives
+`````````````````````````````````````
+
+Clicking the "Dup" button starts the duplicate cleanup process. This function
+automates fixing archives by replacing original broken files with duplicate
+intact files. It also automatically deletes duplicates of intact original files.
+
+Multismart's Dup function works on the assumption that all of the following
+files are the same file:
+
+| BigArchive.r03
+| BigArchive-0001.r03
+| BigArchive-0002.r03
+| BigArchive-(0001).r03
+| Copy of BigArchive.r03
+| Copy (2) of BigArchive.r03
+
+As you see, I'm attempting to cover any automatic renaming scheme that may have
+been applied to your files. If, for some reason, you have archives with names
+like above that are actually different archives, you should not use this
+function.
+
+The basic rules for renaming and deleting files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The best way to describe what Dup does is probably by examples:
+
+If BigArchive.r03 has the correct size, or better, a correct MD5/CRC32 checksum
+(verified by a PAR/SFV parent), all other permutations of BigArchive.r03 will be
+deleted (as specified above).
+
+If BigArchive.r03 has an incorrect size or an incorrect MD5/CRC32 checksum
+(again as verified by a PAR/SFV parent), all permutations of BigArchive.r03 will
+be searched for one that matches the required size or MD5/CRC32. If one is
+found, the original BigArchive.r03 file is replaced with the found file, and all
+other BigArchive.r03 files are deleted.
+
+Note: To avoid that files such as newyears-1998.r03 confuse the function, it is
+a requirement that the two first digits of the -nnnn sequence are 00. This will
+only be a problem if you have more than 100 duplicates of a file.
+
+Select, Delete, Copy and Missing
+````````````````````````````````
+
+These functions work together to let you delete specific archives and create
+lists of archives to use for different purposes.
+
+Creating Selections
+~~~~~~~~~~~~~~~~~~~
+
+Manual and semi-automatic selections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Delete, Copy and Missing functions work on items that you have selected. You
+can select multiple items manually in the normal Microsoft Way by clicking items
+while pressing the shift and/or ctrl keys, or semi-automatically by
+double-clicking the following items:
+
+=================  ==========================================
+Double-click Item  Effect
+=================  ==========================================
+Archive            select all parts of the archive
+archive part       select all parts of the archive
+.SFV file          select all the children of the .SFV file
+.PAR file          select all the children of the .PAR file
+=================  ==========================================
+
+Automatic Selections
+~~~~~~~~~~~~~~~~~~~~
+
+The Select function selects archives that match your criteria. Use the For
+Delete tab to select items to delete (archives that have MORE than a certain
+number of missing parts), and use the For Copy / Missing tab to select items to
+request (archives that have LESS than a certain number of missing parts).
+
+Note that the Select function only performs the selection. After the selection
+has been done, you can view and modify the selection by clicking items while
+holding the ctrl key before starting one of the functions described below.
+
+Delete
+~~~~~~
+
+Delete all marked items. Note that deleting a archive item will delete the
+entire archive. Deleting "PAR only", "SFV only" or "gap" items is not possible
+since they don't exist on disk. These items will disappear automatically when
+the actual files that they display information about are deleted.
+
+After clicking *Delete*, a confirmation dialog will appear. The dialog shows you
+exactly which files will be deleted if you complete the function.
+
+Copy
+~~~~
+
+Copy a list of filenames to the Clipboard. If you have made a selection that
+implicitly selects more than one type of items, a dialog box will appear where
+you can specify what kind of items you would like to include in your list.
+Existing files are files that are actually present in your monitored folder and
+virtual files are files that are missing in your monitored folder but which
+Multismart thinks are needed for creating complete archives.
+
+Missing
+~~~~~~~
+
+Copy a list of missing files to the Clipboard in a compact format. For instance,
+if *Copy* would have generated the following list:
+
+| BigArchive.r03
+| BigArchive.r04
+| BigArchive.r05
+| BigArchive.r10
+| AnotherArchive.r08
+
+*Missing* will generate the following list:
+
+| BigArchive r03-r05, r10
+| AnotherArhive.r08
+
+*Missing* automatically excludes files that exist in your monitored folder, even
+if they are in your selection.
+
+Refresh
+~~~~~~~
+
+When you first open a folder and then each time you click the Refresh button,
+the folder is scanned for new files, and special files are opened and scanned.
+This can be a lengthy process if you have a huge amount of files in the folder.
+After the folder is scanned, MD5/CRC32 calculations of any new files are
+started. This can take a very long time, but you may work with the application
+during this process. Be aware though that any uncalculated files are invisible
+to all PAR functions. So, to increase the chance that PAR functions succeed,
+wait until all MD5/CRC32 calculations are finished before running them.
+
+To avoid hard drive trashing, simultaneous MD5/CRC32 calculations of different
+folders on the same drive are queued and executed consecutively while
+calculations of folders on different drives are executed concurrently.
+
+Keyboard Shortcuts
+``````````````````
+
+================= ============================================================
+Key               Function
+================= ============================================================
+Ctrl-D, Delete    Delete
+Ctrl-C            Copy
+Ctrl-R            Missing
+A - Z             Jump to item in list
+F5                Refresh
+================= ============================================================
+
+Automatic Descript.ion cleaning
+```````````````````````````````
+
+If you have Descript.ion files, Multismart will display
+the information about files that is records there. To prevent the Descript.ion
+database from growing too big, Multismart also keeps track of how much unused
+information it contains. If more than 50% of the information in the database is
+unused, you are given the option to remove the unused data. The unused data is
+descriptions of files that no longer exist.
+
+SFV Function
+````````````
+
+Multismart integrates functionality similar to that of QuickSFV, FastSFV and
+WinSFV.
+
+File MD5/CRC32 performance in Multismart should equal or exceed that of the
+applications mentioned above because it uses the fastest disk access method
+provided by Windows.
+
+Note that because MD5/CRC32 is a lengthy process; Multismart runs the MD5/CRC32
+processes on a priority that is slightly lower than default. There is a
+potential disadvantage in that if you run less "courteous" applications that
+perform lengthy operations at higher priorities, Multismart will wait until
+these are done before doing work itself. The advantage is that you will see very
+little impact on the usability of your computer while the MD5/CRC32 process
+runs.
+
+Notes on implementation
+-----------------------
+
+Known bugs
+``````````
+
+None.
+
+Known minor issues
+``````````````````
+
+When the descript.ion cleaning dialog pops up, the progress dialog goes behind
+the main window.
+
+If a file is deleted before the MD5/CRC32 process gets to it, it is displayed
+with "open error". For non-programmers, this is probably not intuitive. The file
+should be marked with "removed" or should just disappear.
+
+When "Show" state is changed, should jump to item that had focus.
+
+Files with MD5/CRC32 errors
+```````````````````````````
+
+Multismart currently considers files with MD5/CRC32 errors absent even though it
+might be possible to recover the file if it is a RAR part that was created with
+the "recovery" option. The best way for Multismart to deal with such RAR parts
+would probably be to detect if they were created with a recovery option and then
+try to recover it, but for now, that is not implemented.
+
+The file database, .Multismart
+``````````````````````````````
+
+Multismart maintains a database of file MD5s and CRCs, so that it doesn't have
+to MD5/CRC32 the same file several times. Multismart also stores information
+such as last modified date and size of all existing files in this database. This
+prevents Multismart from making any mistakes if you change or overwrite files.
+The name of the database file is .Multismart and it is stored in the monitored
+folder. It you delete this file while Multismart is running, Multismart will
+automatically restore it, but if you delete it when Multismart is not running,
+Multismart has to MD5/CRC32 all your files again before it can display full
+information about the archives the next time you start it.
+
+Uninstall
+---------
+
+Uninstalling Multismart is as easy as removing the executable file and removing
+the following key from the registry:
+
+HKEY_CURRENT_USER\Software\RDahl\Multismart
+
+Multiple instances
+------------------
+
+It should not be necessary to run multiple instances of Multismart because you
+can monitor as many folders as you like with a single instance of the program.
+However, you can run multiple instances of Multismart as long as you point them
+to different monitored folders. If you try to run two or more instances of
+Multismart pointing to the same monitored folder you may get inconsistent
+results as instances bicker over the data in the database files (.Multismart and
+Descript.ion).
+
+Only the settings from the last instance you close will be retained because
+instances will share the Registry key.
+
+"Double" selections
+-------------------
+
+If you select both a archive item and one or more corresponding archive parts
+that exist on disk, you have essentially selected some items multiple times
+because archive items are virtual items and refer directly to the real items.
+Deleting this selection will cause the real items to be deleted twice as hard --
+just kidding :)
+
+The rule is that Multismart will always try to process as many files as possible
+when you select files both implicitly (through selecting an archive item or a
+PAR/SFV parent) and explicitly (through select corresponding archive parts or
+PAR/SFV children) at the same time.
+
+Finding how many parts of which a RAR archive consists
+------------------------------------------------------
+
+The RAR archive format does not provide a way to find directly how many parts
+make up a given RAR archive. Multismart deals with this problem in the following
+way.
+
+Without a PAR/SFV parent
+````````````````````````
+
+Multismart knows that RAR archives consist of many parts. If Multismart sees the
+following two files:
+
+| BigArchive.r05
+| BigArchive.r07
+
+it knows that there is a RAR archive called "BigArchive" that has at least 9
+parts (RAR, r00 - r07) where two parts are present and the rest are missing. It
+looks at the size of the last known file (r07 in this case) and compares it to
+the size of the other files in the archive. If the file is smaller, chances are
+that it is the last file of the archive. If the file is the same size, there are
+probably files beyond r07 but there is no good way for Multismart to find out
+how many.
+
+With an PAR/SFV parent
+``````````````````````
+
+If there is a PAR/SFV parent, Multismart uses it to find out how many parts an
+archive consists of. It will also use the checksums in the SFV file to check if
+there are checksum errors in the corresponding files.
+
+Deciding whether or not to delete the archive
+---------------------------------------------
+
+Multismart keeps track of the following key information about an archive:
+
+How many days since the first time and the last time a part of the archive was
+encountered and the number of existing and missing parts of an archive.
+
+Multismart then compares these values with values you supply to find out if a
+particular archive should be selected for deletion. For instance, you might say
+that archives where there's more than 5 missing parts and the last part was
+encountered more than 2 days ago should be marked.
+
+If a few new parts of the now deleted archive appear later, they will
+automatically be marked for deletion when you run the function with the same
+criteria again.
+
+Todo
+----
+
+* Speed optimizations.
+* Scripting support (so that all the functions that the application supports can be performed from a script or batch file).
+* Built in uncompress functions for archives.
+* Continuous folder monitoring (find and process files as they appear in the download folder).
+* Functions to move and rename complete archives.
+* Function to merge archives that have different names but are actually the same archive.
+* Improve handling of archives that have errors but contain built-in recovery information.
+* Improve handling of duplicate archive parts (in this version. duplicate parts are seen as archives of their own).
+* Grouping of related archives (for instance. selecting BigArchive_1_of_2 might automatically select BigArchive_2_of_2).
+* Display combined size of selected files.
+* Function to search for specific archive based on various search criteria.
+* Function to select all archives that match a given string.
+* Put database files in the application folder instead of in the download folder.
+* Functions to hide special files like PAR/SFV parents and non-archive files.
+* Automatically perform Dup and PAR functions in the background.
